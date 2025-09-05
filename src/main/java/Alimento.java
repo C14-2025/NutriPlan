@@ -1,5 +1,3 @@
-package com.nutriplan.model;
-
 import jakarta.persistence.*;
 
 @Entity
