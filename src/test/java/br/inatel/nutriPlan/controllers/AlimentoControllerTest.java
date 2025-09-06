@@ -27,7 +27,7 @@ class AlimentoControllerTest {
     }
 
     @Test
-    void testSaveAlimento() {
+    void testSaveAlimentoRespostaHTTP() {
         //FIXTURE DO TESTE
         AlimentoDto dto = new AlimentoDto(); //entrada do metodo
         dto.setNome("Feijão");
@@ -42,6 +42,23 @@ class AlimentoControllerTest {
         ResponseEntity<Object> response = controller.saveAlimento(dto);
 
         assertEquals(201, response.getStatusCodeValue()); //testando se foi criado
+    }
+
+    @Test
+    void testSaveAlimentoValorCorreto() {
+
+        AlimentoDto dto = new AlimentoDto();
+        dto.setNome("Frango");
+
+        Alimento model = new Alimento();
+        model.setNome("Frango");
+
+        when(service.save(any(Alimento.class))).thenReturn(model);
+
+        ResponseEntity<Object> response = controller.saveAlimento(dto);
+
+        assertEquals("Frango", ((Alimento) response.getBody()).getNome());
 
     }
+
 }
