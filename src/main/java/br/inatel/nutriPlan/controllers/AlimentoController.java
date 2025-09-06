@@ -1,5 +1,6 @@
 package br.inatel.nutriPlan.controllers;
 
+import br.inatel.nutriPlan.dtos.AlimentoDto;
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.services.AlimentoService;
 import org.springframework.beans.BeanUtils;
