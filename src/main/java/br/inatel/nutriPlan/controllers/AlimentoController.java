@@ -26,6 +26,5 @@ public class AlimentoController {
         BeanUtils.copyProperties(alimentoDto, alimentoModel); //converção de dto para model
         return ResponseEntity.status(HttpStatus.CREATED).body(alimentoService.save(alimentoModel));
 
-
     }
 }
