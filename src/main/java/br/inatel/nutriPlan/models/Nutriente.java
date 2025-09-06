@@ -1,3 +1,5 @@
+package br.inatel.nutriPlan.models;
+
 import jakarta.persistence.*;
 
 @Entity

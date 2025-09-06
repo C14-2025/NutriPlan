@@ -1,10 +1,16 @@
+package br.inatel.nutriPlan;
+
+import br.inatel.nutriPlan.models.Alimento;
+import br.inatel.nutriPlan.models.Nutriente;
+import br.inatel.nutriPlan.models.Refeicao;
+import br.inatel.nutriPlan.models.Usuario;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class Teste {
 
@@ -78,3 +84,4 @@ public class Teste {
         assertEquals(50.0, refeicao.getNutrientes().get(0).getQuantidade());
     }
 }
+
