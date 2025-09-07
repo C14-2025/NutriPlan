@@ -1,3 +1,5 @@
+package br.inatel.nutriPlan.models;
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,3 +37,4 @@ public class Refeicao {
     public List<Nutriente> getNutrientes() { return nutrientes; }
     public void setNutrientes(List<Nutriente> nutrientes) { this.nutrientes = nutrientes; }
 }
+
