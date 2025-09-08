@@ -1,10 +1,27 @@
 package br.inatel.nutriPlan.dtos;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+
 public class AlimentoDto {
+    @NotBlank(message = "Nome é obrigatório")
     private String nome;
+    
+    @NotNull(message = "Calorias é obrigatório")
+    @PositiveOrZero(message = "Calorias deve ser positivo")
     private Double calorias;
+    
+    @NotNull(message = "Carboidratos é obrigatório")
+    @PositiveOrZero(message = "Carboidratos deve ser positivo")
     private Double carboidratos;
+    
+    @NotNull(message = "Proteínas é obrigatório")
+    @PositiveOrZero(message = "Proteínas deve ser positivo")
     private Double proteinas;
+    
+    @NotNull(message = "Gorduras é obrigatório")
+    @PositiveOrZero(message = "Gorduras deve ser positivo")
     private Double gorduras;
 
     public String getNome() {
