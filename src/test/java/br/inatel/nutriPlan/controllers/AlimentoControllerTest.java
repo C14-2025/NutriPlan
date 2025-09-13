@@ -10,6 +10,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -59,6 +63,36 @@ class AlimentoControllerTest {
 
         assertEquals("Frango", ((Alimento) response.getBody()).getNome());
 
+    }
+
+    @Test
+    void testBuscarPorIdEncontrado() {
+        Alimento alimento = new Alimento();
+        alimento.setId(1L);
+        alimento.setNome("Peixe");
+
+        when(service.findById(1L)).thenReturn(Optional.of(alimento));
+
+        ResponseEntity<Object> response = controller.buscarAlimento(1L);
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals("Peixe", ((Alimento) response.getBody()).getNome());
+    }
+
+    @Test
+    void testListarAlimentos() {
+        Alimento a1 = new Alimento();
+        a1.setNome("Arroz");
+        Alimento a2 = new Alimento();
+        a2.setNome("Batata");
+
+        when(service.findAll()).thenReturn(Arrays.asList(a1, a2));
+
+        ResponseEntity<List<Alimento>> response = controller.listarAlimentos();
+
+        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(2, response.getBody().size());
+        assertEquals("Arroz", response.getBody().get(0).getNome());
     }
 
 }
