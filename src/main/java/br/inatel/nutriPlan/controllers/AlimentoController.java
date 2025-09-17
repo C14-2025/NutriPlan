@@ -2,6 +2,7 @@ package br.inatel.nutriPlan.controllers;
 
 import br.inatel.nutriPlan.dtos.AlimentoDto;
 import br.inatel.nutriPlan.models.Alimento;
+import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.repositories.AlimentoRepository;
 import br.inatel.nutriPlan.services.AlimentoService;
 import jakarta.validation.Valid;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -35,4 +37,5 @@ public class AlimentoController {
     public ResponseEntity<List<Alimento>> getAllAlimentos() {
         return ResponseEntity.status(HttpStatus.OK).body(alimentoService.findAll());
     }
+
 }

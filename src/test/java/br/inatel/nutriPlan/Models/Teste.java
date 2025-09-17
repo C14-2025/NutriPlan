@@ -1,4 +1,4 @@
-package br.inatel.nutriPlan;
+package br.inatel.nutriPlan.Models;
 
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Nutriente;
