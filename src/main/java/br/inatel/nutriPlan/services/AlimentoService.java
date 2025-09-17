@@ -6,6 +6,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AlimentoService {
 
@@ -15,5 +17,9 @@ public class AlimentoService {
     @Transactional
     public Alimento save(Alimento alimentoModel) {
         return alimentoRepository.save(alimentoModel);
+    }
+
+    public List<Alimento> findAll() {
+        return alimentoRepository.findAll();
     }
 }
