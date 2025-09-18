@@ -14,6 +14,8 @@ import java.time.LocalDateTime;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 class DashBoardControllerTest {
 
@@ -86,5 +88,43 @@ class DashBoardControllerTest {
 
         assertTrue(response.containsKey("periodo"));
         assertEquals(0.0, response.get("totalCalorias"));
+    }
+
+    @Test
+    void testRelatorioSemanalComDadosNoPeriodo() {
+        // Fixture: hoje e início da semana (7 dias atrás)
+        LocalDate hoje = LocalDate.now();
+        LocalDateTime dataDentroPeriodo = hoje.atStartOfDay();
+
+        Alimento frango = new Alimento();
+        frango.setCalorias(165.0);
+        frango.setCarboidratos(0.0);
+        frango.setProteinas(31.0);
+        frango.setGorduras(3.6);
+
+        Nutriente nutriente = new Nutriente();
+        nutriente.setAlimento(frango);
+        nutriente.setQuantidade(100.0); // 100g
+
+        Refeicao refeicao = new Refeicao();
+        refeicao.setDataHora(dataDentroPeriodo);
+        refeicao.setNutrientes(List.of(nutriente));
+
+        // Mock do repositório retornando a refeição dentro do período
+        when(refeicaoRepository.findAll()).thenReturn(List.of(refeicao));
+
+        // Chamada do método
+        Map<String, Object> response = controller.getRelatorioSemanal();
+
+        // Validações
+        assertNotNull(response);
+        assertEquals(165.0, response.get("totalCalorias"));
+        assertEquals(165.0 / 7, response.get("mediaCaloriasDia"));
+        assertEquals(0.0, response.get("totalCarboidratos"));
+        assertEquals(31.0, response.get("totalProteinas"));
+        assertEquals(3.6, response.get("totalGorduras"));
+
+        String periodoEsperado = hoje.minusDays(6) + " até " + hoje;
+        assertEquals(periodoEsperado, response.get("periodo"));
     }
 }
