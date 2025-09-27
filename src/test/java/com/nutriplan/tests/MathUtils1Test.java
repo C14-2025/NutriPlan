@@ -3,7 +3,7 @@ package com.nutriplan.tests;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class MathUtilsTest1 {
+public class MathUtils1Test {
 
     @Test
     void addPositiveNumbers() {
