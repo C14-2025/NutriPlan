@@ -1,4 +1,5 @@
-package com.nutriplan.tests;
+package br.inatel.nutriPlan.controllers;
+
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;

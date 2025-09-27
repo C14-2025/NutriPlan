@@ -1,10 +1,11 @@
-package com.nutriplan.tests;
+package br.inatel.nutriPlan.controllers;
+
 
 import org.junit.jupiter.api.Test;
 import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class ListUtilsTest3 {
+public class ListUtils2Test {
 
     @Test
     void listAdd() {

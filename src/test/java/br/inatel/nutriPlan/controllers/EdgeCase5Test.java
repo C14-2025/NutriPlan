@@ -1,9 +1,10 @@
-package com.nutriplan.tests;
+package br.inatel.nutriPlan.controllers;
+
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EdgeCaseTest5 {
+public class EdgeCase5Test {
 
     @Test
     void nullCheck() {

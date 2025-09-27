@@ -1,4 +1,5 @@
-package com.nutriplan.tests;
+package br.inatel.nutriPlan.controllers;
+
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -9,7 +10,7 @@ interface Service {
     String call();
 }
 
-public class MockServiceTest4 {
+public class MockService4Test {
 
     @Test
     void mockReturnsValue() {
