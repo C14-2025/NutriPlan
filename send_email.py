@@ -6,7 +6,7 @@ from email.message import EmailMessage
 # Lê variáveis de ambiente (NÃO HARDCODE)
 RECIPIENT = os.getenv("RECIPIENT_EMAIL")
 SMTP_HOST = os.getenv("SMTP_HOST")
-SMTP_PORT = int(os.getenv("SMTP_PORT" or "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT") or "587")
 SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASS = os.getenv("SMTP_PASS")
 
