@@ -1,1 +1,0 @@
-# requirements (vazio se usar apenas stdlib)
