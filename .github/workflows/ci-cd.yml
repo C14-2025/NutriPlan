@@ -92,3 +92,13 @@ jobs:
             Author: ${{ github.actor }}
           to: ${{ secrets.RECIPIENT_EMAIL }}
           from: ${{ secrets.SMTP_USER }}
+          
+    lint-check:
+      name: Lint Check
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+
+        - name: List project files (placeholder for lint)
+          run: ls -R .
