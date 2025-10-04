@@ -119,7 +119,7 @@ jobs:
           java-version: '17'
 
       - name: Set JAVA_HOME
-        run: echo "JAVA_HOME=${{ env.JAVA_HOME }}" >> $GITHUB_ENV
+        run: echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
 
       - name: Run OWASP Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
@@ -134,7 +134,5 @@ jobs:
         with:
           name: dependency-check-report
           path: dependency-check-report.*
-
-
 
 
