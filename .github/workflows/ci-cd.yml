@@ -92,8 +92,8 @@ jobs:
             Author: ${{ github.actor }}
           to: ${{ secrets.RECIPIENT_EMAIL }}
           from: ${{ secrets.SMTP_USER }}
-          
-    lint-check:
+
+  lint-check:
       name: Lint Check
       runs-on: ubuntu-latest
       steps:
