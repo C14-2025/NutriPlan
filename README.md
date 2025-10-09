@@ -1,6 +1,5 @@
 # NutriPlan
 
-![NutriPlan Banner](https://via.placeholder.com/1200x400.png?text=NutriPlan+Banner)
 *Seu assistente digital para um estilo de vida mais saudável.*
 
 ---
