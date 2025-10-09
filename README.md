@@ -5,16 +5,6 @@
 
 ---
 
-## 📌 Índice
-
-1. [Descrição do Projeto](#descrição-do-projeto)
-2. [Funcionalidades](#funcionalidades)
-3. [Tecnologias Utilizadas](#tecnologias-utilizadas)
-4. [Como Rodar o Projeto](#como-rodar-o-projeto)
-5. [Contribuindo](#contribuindo)
-
----
-
 ## 📝 Descrição do Projeto
 
 O **NutriPlan** é uma aplicação web desenvolvida para auxiliar no acompanhamento nutricional diário. Com ela, é possível:
