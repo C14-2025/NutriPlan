@@ -44,6 +44,18 @@ pipeline {
                 }
             }
         }
+        stage('Security Scan (OWASP)') {
+            steps {
+                checkout scm
+                bat '''
+                    echo Executando OWASP Dependency Check...
+                    if not exist dependency-check-report mkdir dependency-check-report
+                    dependency-check.bat --project "NutriPlan" --scan . --format "ALL" --out dependency-check-report --noupdate --failOnCVSS 10 || echo Falhas encontradas (continuando)
+                '''
+                archiveArtifacts artifacts: 'dependency-check-report\\*\\', allowEmptyArchive: true
+            }
+        }
+        
     }
 
     
