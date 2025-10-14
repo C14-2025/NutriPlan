@@ -3,7 +3,7 @@ pipeline {
 
     tools {
         maven 'Maven-3.9.11'
-        jdk 'JDK-17'
+
     }
 
     stages {
@@ -17,14 +17,14 @@ pipeline {
         stage('Build') {
             steps {
                 echo '🔨 Compilando projeto...'
-                sh 'mvn clean compile -B'
+                bat 'mvn clean compile -B'
             }
         }
 
         stage('Test') {
             steps {
                 echo '🧪 Executando testes...'
-                sh 'mvn test -B'
+                bat 'mvn test -B'
             }
             post {
                 always {
@@ -36,7 +36,7 @@ pipeline {
         stage('Package') {
             steps {
                 echo '📦 Gerando pacote...'
-                sh 'mvn package -DskipTests -B'
+                bat 'mvn package -DskipTests -B'
                 archiveArtifacts 'target/*.jar'
             }
         }
