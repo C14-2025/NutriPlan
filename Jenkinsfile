@@ -56,7 +56,7 @@ pipeline {
                 Resultado da build: ${currentBuild.currentResult}
 
                 Verifique os logs no Jenkins para mais detalhes.""",
-                to: "destinatario@gmail.com"
+                to: "batistanatp@gmail.com"
             )
         }
     }
