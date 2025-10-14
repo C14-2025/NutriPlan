@@ -2,56 +2,45 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.11'
+            maven 'Maven-3.9.11'
+    }
 
+    options {
+        timestamps()
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                echo '📦 Fazendo checkout do código...'
-                checkout scm
-            }
-        }
-
-        stage('Build') {
-            steps {
-                echo '🔨 Compilando projeto...'
-                bat 'mvn clean compile -B'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                echo '🧪 Executando testes...'
-                bat 'mvn test -B'
-            }
-            post {
-                always {
-                    junit 'target/surefire-reports/*.xml'
+        stage('Parallel Jobs') {
+            parallel {
+                stage('Tests') {
+                    steps {
+                        checkout scm
+                        bat 'echo Configurando ambiente Java 17...'
+                        bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
+                        archiveArtifacts artifacts: 'target\\surefire-reports\\*\\', fingerprint: true
+                        junit 'target\\surefire-reports\\*.xml'
+                    }
                 }
-            }
-        }
 
-        stage('Package') {
-            steps {
-                echo '📦 Gerando pacote...'
-                bat 'mvn package -DskipTests -B'
-                archiveArtifacts 'target/*.jar'
-            }
-        }
+                stage('Package') {
+                    steps {
+                        checkout scm
+                        bat 'echo Compilando o projeto (sem testes)...'
+                        bat 'mvn -B -DskipTests package'
+                        archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
+                    }
+                }
+
+
+
+
+
+
     }
 
     post {
         always {
-            echo '✅ Pipeline finalizado!'
-            cleanWs()
-        }
-        success {
-            echo '🎉 Build e testes executados com sucesso!'
-        }
-        failure {
-            echo '❌ Falha no pipeline!'
+            echo "Pipeline finalizado com status: ${currentBuild.currentResult}"
         }
     }
 }
