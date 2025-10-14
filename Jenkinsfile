@@ -4,13 +4,13 @@ pipeline {
     parameters {
         choice(
             name: 'BRANCH',
-            choices: ['main', 'Joao'],
+            choices: ['main', 'Joao', 'testePipelineJenkins'],
             description: 'Branch para build'
         )
     }
 
     triggers {
-        pollSCM('H/5 * * * *')  // Poll SCM a cada 5 minutos
+        pollSCM('H/5 * * * *')
     }
 
     options {
@@ -24,7 +24,10 @@ pipeline {
                 checkout([
                     $class: 'GitSCM',
                     branches: [[name: "*/${params.BRANCH}"]],
-                    userRemoteConfigs: [[url: 'URL_DO_SEU_REPOSITORIO']]
+                    userRemoteConfigs: [[
+                        url: 'https://github.com/C14-2025/NutriPlan.git'
+                        // Se precisar de credenciais, adicione: credentialsId: 'seu-credential-id'
+                    ]]
                 ])
             }
         }
@@ -32,9 +35,10 @@ pipeline {
         stage('Setup Java') {
             steps {
                 script {
+                    // Configurar Java para Windows
                     def javaHome = tool name: 'java-17', type: 'jdk'
                     env.JAVA_HOME = javaHome
-                    env.PATH = "${javaHome}/bin:${env.PATH}"
+                    env.PATH = "${javaHome}/bin;${env.PATH}"
                 }
             }
         }
@@ -45,11 +49,9 @@ pipeline {
                 stage('Tests') {
                     steps {
                         script {
-                            // Cache Maven (simulação)
-                            sh 'mvn -B dependency:go-offline'
-
-                            // Run tests
-                            sh 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
+                            // Usar bat para Windows em vez de sh
+                            bat 'mvn -B dependency:go-offline'
+                            bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
                         }
                     }
                     post {
@@ -63,8 +65,7 @@ pipeline {
                 stage('Package') {
                     steps {
                         script {
-                            // Build package (skip tests)
-                            sh 'mvn -B -DskipTests clean package'
+                            bat 'mvn -B -DskipTests clean package'
                         }
                     }
                     post {
@@ -77,9 +78,8 @@ pipeline {
                 stage('Lint Check') {
                     steps {
                         script {
-                            sh 'ls -R .'
-                            // Adicione aqui ferramentas de lint específicas
-                            sh 'mvn checkstyle:check || echo "Checkstyle issues found"'
+                            bat 'dir /s'  // Equivalente a ls -R no Windows
+                            bat 'mvn checkstyle:check || echo "Checkstyle issues found"'
                         }
                     }
                 }
@@ -93,7 +93,6 @@ pipeline {
             steps {
                 script {
                     catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
-                        // OWASP Dependency Check
                         dependencyCheck arguments: '''
                             --project "NutriPlan"
                             --scan "."
@@ -118,23 +117,21 @@ pipeline {
     post {
         always {
             script {
-                // Notificação por email
                 def status = currentBuild.result ?: 'SUCCESS'
-                def subject = "NutriPlan Pipeline - ${status}"
-                def body = """
-                    Pipeline Status Report:
-
-                    Build: ${currentBuild.fullDisplayName}
-                    Status: ${status}
-                    URL: ${env.BUILD_URL}
-                    Branch: ${params.BRANCH}
-                    Commit: ${sh(script: 'git rev-parse HEAD', returnStdout: true).trim()}
-                """
+                def commitHash = bat(script: 'git rev-parse HEAD', returnStdout: true).trim()
 
                 emailext (
-                    subject: subject,
-                    body: body,
-                    to: 'RECIPIENT_EMAIL@example.com',
+                    subject: "NutriPlan Pipeline - ${status}",
+                    body: """
+                        Pipeline Status Report:
+
+                        Build: ${currentBuild.fullDisplayName}
+                        Status: ${status}
+                        URL: ${env.BUILD_URL}
+                        Branch: ${params.BRANCH}
+                        Commit: ${commitHash}
+                    """,
+                    to: 'RECIPIENT_EMAIL@example.com', // Substitua pelo email real
                     attachLog: true
                 )
             }
