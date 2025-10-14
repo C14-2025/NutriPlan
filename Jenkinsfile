@@ -46,16 +46,5 @@ pipeline {
         }
     }
 
-    post {
-        always {
-            echo 'Pipeline finalizado!'
-            cleanWs()
-        }
-        success {
-            echo 'Build executado com sucesso!'
-        }
-        failure {
-            echo 'Falha no pipeline!'
-        }
-    }
+    
 }
