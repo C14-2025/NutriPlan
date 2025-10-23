@@ -31,4 +31,26 @@ public class Nutriente {
 
     public Alimento getAlimento() { return alimento; }
     public void setAlimento(Alimento alimento) { this.alimento = alimento; }
+    
+
+    public double getCaloriasCalculadas() {
+        if (alimento == null || quantidade == null) return 0;
+        return (alimento.getCalorias() * quantidade) / 100.0;
+    }
+
+    public double getProteinasCalculadas() {
+        if (alimento == null || quantidade == null) return 0;
+        return (alimento.getProteinas() * quantidade) / 100.0;
+    }
+
+    public double getCarboidratosCalculadas() {
+        if (alimento == null || quantidade == null) return 0;
+        return (alimento.getCarboidratos() * quantidade) / 100.0;
+    }
+
+    public double getGordurasCalculadas() {
+        if (alimento == null || quantidade == null) return 0;
+        return (alimento.getGorduras() * quantidade) / 100.0;
+    }
+
 }
