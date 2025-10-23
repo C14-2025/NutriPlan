@@ -45,5 +45,13 @@ public class Refeicao {
 
     public List<Nutriente> getNutrientes() { return nutrientes; }
     public void setNutrientes(List<Nutriente> nutrientes) { this.nutrientes = nutrientes; }
+
+    public List<Alimento> getAlimentos() {
+        return alimentos;
+    }
+
+    public void setAlimentos(List<Alimento> alimentos) {
+        this.alimentos = alimentos;
+    }
 }
 
