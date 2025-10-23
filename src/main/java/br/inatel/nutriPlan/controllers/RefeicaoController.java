@@ -71,5 +71,16 @@ public class RefeicaoController {
         return ResponseEntity.status(HttpStatus.OK).body(refeicaoService.save(refeicaoModel)); //salvando
     }
 
+    @PostMapping("/{refeicaoId}/alimentos/{alimentoId}")
+    public ResponseEntity<Refeicao> adicionarAlimento(@PathVariable long refeicaoId, @PathVariable long alimentoId) {
+        Refeicao refeicao = refeicaoService.adicionarAlimento(refeicaoId, alimentoId);
+        return ResponseEntity.status(HttpStatus.CREATED).body(refeicao);
+    }
+
+    @DeleteMapping("/{refeicaoId}/alimentos/{alimentoId}")
+    public ResponseEntity<Refeicao> removerAlimento(@PathVariable long refeicaoId, @PathVariable long alimentoId) {
+        Refeicao refeicao = refeicaoService.removerAlimento(refeicaoId, alimentoId);
+        return ResponseEntity.status(HttpStatus.OK).body(refeicao);
+    }
 
 }
