@@ -6,31 +6,40 @@ import br.inatel.nutriPlan.models.Refeicao;
 import java.util.List;
 
 public class NutrienteDto {
-    private double quantidade;
-    private List<Refeicao> refeicao;
-    private List<Alimento> alimento;
+    private double calorias;
+    private double carboidratos;
+    private double proteinas;
+    private double gorduras;
 
-    public double getQuantidade() {
-        return quantidade;
+    public double getCalorias() {
+        return calorias;
     }
 
-    public void setQuantidade(double quantidade) {
-        this.quantidade = quantidade;
+    public void setCalorias(double calorias) {
+        this.calorias = calorias;
     }
 
-    public List<Refeicao> getRefeicao() {
-        return refeicao;
+    public double getCarboidratos() {
+        return carboidratos;
     }
 
-    public void setRefeicao(List<Refeicao> refeicao) {
-        this.refeicao = refeicao;
+    public void setCarboidratos(double carboidratos) {
+        this.carboidratos = carboidratos;
     }
 
-    public List<Alimento> getAlimento() {
-        return alimento;
+    public double getProteinas() {
+        return proteinas;
     }
 
-    public void setAlimento(List<Alimento> alimento) {
-        this.alimento = alimento;
+    public void setProteinas(double proteinas) {
+        this.proteinas = proteinas;
+    }
+
+    public double getGorduras() {
+        return gorduras;
+    }
+
+    public void setGorduras(double gorduras) {
+        this.gorduras = gorduras;
     }
 }
