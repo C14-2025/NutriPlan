@@ -1,6 +1,8 @@
 package br.inatel.nutriPlan.services;
 
+import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Refeicao;
+import br.inatel.nutriPlan.repositories.AlimentoRepository;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ public class RefeicaoService {
 
     @Autowired
     private RefeicaoRepository refeicaoRepository;
+    private AlimentoRepository alimentoRepository;
 
     public List<Refeicao> findAll() {
         return refeicaoRepository.findAll();
@@ -30,4 +33,6 @@ public class RefeicaoService {
     public void delete(Refeicao refeicao) {
         refeicaoRepository.delete(refeicao);
     }
+
+
 }

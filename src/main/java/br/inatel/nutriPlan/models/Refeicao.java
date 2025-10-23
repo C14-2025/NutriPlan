@@ -21,6 +21,15 @@ public class Refeicao {
     @OneToMany(mappedBy = "refeicao", cascade = CascadeType.ALL)
     private List<Nutriente> nutrientes;
 
+    @ManyToMany
+    @JoinTable(
+            name = "refeicao_alimento",
+            joinColumns = @JoinColumn(name = "refeicao_id"),
+            inverseJoinColumns = @JoinColumn(name = "alimento_id")
+    )
+    private List<Alimento> alimentos;
+
+
     // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
