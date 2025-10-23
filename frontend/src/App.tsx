@@ -31,6 +31,8 @@ export interface FoodItem {
 }
 
 export interface UserGoals {
+  sex: "male" | "female";
+  age: number;
   dailyCalories: number;
   dailyProtein: number;
   dailyCarbs: number;
@@ -109,6 +111,8 @@ function App() {
   ]);
 
   const [userGoals, setUserGoals] = useState<UserGoals>({
+    sex: "male",
+    age: 25,
     dailyCalories: 2000,
     dailyProtein: 150,
     dailyCarbs: 250,
@@ -146,19 +150,19 @@ function App() {
 
         <Tabs defaultValue="dashboard" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2 cursor-pointer">
               <Home className="w-4 h-4" />
               Dashboard
             </TabsTrigger>
-            <TabsTrigger value="add-meal" className="flex items-center gap-2">
+            <TabsTrigger value="add-meal" className="flex items-center gap-2 cursor-pointer">
               <Calculator className="w-4 h-4" />
               Adicionar Refeição
             </TabsTrigger>
-            <TabsTrigger value="history" className="flex items-center gap-2">
+            <TabsTrigger value="history" className="flex items-center gap-2 cursor-pointer">
               <History className="w-4 h-4" />
               Histórico
             </TabsTrigger>
-            <TabsTrigger value="profile" className="flex items-center gap-2">
+            <TabsTrigger value="profile" className="flex items-center gap-2 cursor-pointer">
               <User className="w-4 h-4" />
               Perfil
             </TabsTrigger>

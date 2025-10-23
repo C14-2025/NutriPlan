@@ -4,7 +4,6 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { Calculator, Save, Target, User, Activity } from 'lucide-react';
 import type { UserGoals } from '../App';
@@ -23,12 +22,17 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
   };
 
   const calculateBMR = () => {
-    // Fórmula de Harris-Benedict para homens (simplificada)
-    // BMR = 88.362 + (13.397 × peso) + (4.799 × altura) - (5.677 × idade)
-    // Para demonstração, assumindo idade média de 30 anos
-    const age = 30;
-    const bmr = 88.362 + (13.397 * formData.weight) + (4.799 * formData.height) - (5.677 * age);
-    return Math.round(bmr);
+    const { sex, age, weight, height } = formData;
+
+    if (sex === "female") {
+      return Math.round(
+        447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
+      );
+    }
+
+    return Math.round(
+      88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
+    );
   };
 
   const calculateCalorieNeeds = () => {
@@ -48,10 +52,9 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
   const calculateMacroGoals = () => {
     const calories = calculateCalorieNeeds();
 
-    // Distribuição padrão: 30% proteína, 40% carboidratos, 30% gordura
-    const protein = Math.round((calories * 0.30) / 4); // 4 cal/g
-    const carbs = Math.round((calories * 0.40) / 4); // 4 cal/g
-    const fat = Math.round((calories * 0.30) / 9); // 9 cal/g
+    const protein = Math.round((calories * 0.30) / 4);
+    const carbs = Math.round((calories * 0.40) / 4);
+    const fat = Math.round((calories * 0.30) / 9);
 
     return { calories, protein, carbs, fat };
   };
@@ -106,6 +109,7 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
 
   return (
     <div className="space-y-6">
+
       {/* Profile Overview */}
       <Card>
         <CardHeader>
@@ -122,7 +126,40 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
             </Button>
           </div>
         </CardHeader>
+
         <CardContent className="space-y-4">
+
+          {/* SEX & AGE */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label>Sexo</Label>
+              <Select
+                value={formData.sex}
+                onValueChange={(value: string) => updateFormData('sex', value)}
+                disabled={!isEditing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="male">Homem</SelectItem>
+                  <SelectItem value="female">Mulher</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label>Idade</Label>
+              <Input
+                type="number"
+                value={formData.age}
+                onChange={(e) => updateFormData('age', Number(e.target.value))}
+                disabled={!isEditing}
+              />
+            </div>
+          </div>
+
+          {/* WEIGHT & HEIGHT */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Peso (kg)</Label>
@@ -145,6 +182,7 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
             </div>
           </div>
 
+          {/* ACTIVITY LEVEL */}
           <div>
             <Label>Nível de Atividade</Label>
             <Select
@@ -153,14 +191,14 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
               disabled={!isEditing}
             >
               <SelectTrigger>
-              <SelectValue />
+                <SelectValue />
               </SelectTrigger>
               <SelectContent>
-              <SelectItem value="sedentary">Sedentário</SelectItem>
-              <SelectItem value="light">Levemente ativo</SelectItem>
-              <SelectItem value="moderate">Moderadamente ativo</SelectItem>
-              <SelectItem value="active">Muito ativo</SelectItem>
-              <SelectItem value="very-active">Extremamente ativo</SelectItem>
+                <SelectItem value="sedentary">Sedentário</SelectItem>
+                <SelectItem value="light">Levemente ativo</SelectItem>
+                <SelectItem value="moderate">Moderadamente ativo</SelectItem>
+                <SelectItem value="active">Muito ativo</SelectItem>
+                <SelectItem value="very-active">Extremamente ativo</SelectItem>
               </SelectContent>
             </Select>
             {!isEditing && (
@@ -238,7 +276,9 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
             Defina suas metas diárias de consumo de macronutrientes
           </CardDescription>
         </CardHeader>
+
         <CardContent className="space-y-4">
+          {/* Inputs */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <Label>Calorias Diárias</Label>
@@ -281,7 +321,7 @@ export function UserProfile({ userGoals, onUpdateGoals }: UserProfileProps) {
             </div>
           </div>
 
-          {/* Macro Distribution */}
+          {/* Macro Chart */}
           <div>
             <h4 className="mb-3">Distribuição de Macronutrientes</h4>
             <div className="grid grid-cols-3 gap-4">
