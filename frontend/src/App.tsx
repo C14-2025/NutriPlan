@@ -140,7 +140,7 @@ function App() {
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl mb-2">NutriTracker</h1>
+          <h1 className="text-3xl mb-2">NutriPlan</h1>
           <p className="text-gray-600">Acompanhe sua alimentação e atinja suas metas nutricionais</p>
         </div>
 
