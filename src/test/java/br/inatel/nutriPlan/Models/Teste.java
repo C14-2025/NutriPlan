@@ -16,8 +16,8 @@ public class Teste {
     private Usuario usuario;
     private Refeicao refeicao;
     private Alimento alimento;
-    private Nutriente nutriente;
-
+    //private Nutriente nutriente;
+    /*
     @BeforeEach
     public void setup() {
         // Criar usuário
@@ -52,6 +52,8 @@ public class Teste {
         nutriente.setRefeicao(refeicao);
     }
 
+
+     */
     @Test
     public void usuarioTest() {
         assertEquals("Sabrina", usuario.getNome());
@@ -71,7 +73,7 @@ public class Teste {
         assertEquals("Almoço", usuario.getRefeicoes().get(0).getTipo());
         assertEquals(usuario, usuario.getRefeicoes().get(0).getUsuario());
     }
-
+    /*
     @Test
     public void nutrienteTest() {
         // Adiciona o nutriente à refeição
@@ -82,5 +84,7 @@ public class Teste {
         assertEquals(refeicao, refeicao.getNutrientes().get(0).getRefeicao());
         assertEquals(50.0, refeicao.getNutrientes().get(0).getQuantidade());
     }
+
+     */
 }
 

@@ -12,7 +12,7 @@ import java.util.*;
 @RequestMapping("/dashboard")
 @CrossOrigin(origins = "*")
 public class DashboardController {
-
+    /*
     @Autowired
     private RefeicaoRepository refeicaoRepository;
 
@@ -91,4 +91,6 @@ public class DashboardController {
 
         return relatorio;
     }
+
+     */
 }

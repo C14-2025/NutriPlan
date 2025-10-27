@@ -41,7 +41,7 @@ public class RefeicaoService {
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
         }
-        Optional<Alimento> optAlimento = alimentoRepository.findById((int) alimentoId);
+        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
         if(optAlimento.isEmpty()) {
             throw new RuntimeException("Alimento nao encontrado");
         }
@@ -63,7 +63,7 @@ public class RefeicaoService {
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
         }
-        Optional<Alimento> optAlimento = alimentoRepository.findById((int) alimentoId);
+        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
         if(optAlimento.isEmpty()) {
             throw new RuntimeException("Alimento nao encontrado");
         }
@@ -99,10 +99,10 @@ public class RefeicaoService {
         }
 
         Map<String,Double> resultado = new HashMap<>();
-        resultado.put("totalCalorias", totalCalorias);
-        resultado.put("totalProteinas", totalProteinas);
-        resultado.put("totalCarboidratos", totalCarboidratos);
-        resultado.put("totalGorduras", totalGorduras);
+        resultado.put("Calorias", totalCalorias);
+        resultado.put("Proteinas", totalProteinas);
+        resultado.put("Carboidratos", totalCarboidratos);
+        resultado.put("Gorduras", totalGorduras);
         return resultado;
     }
 

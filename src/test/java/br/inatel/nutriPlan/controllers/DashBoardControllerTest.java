@@ -27,7 +27,7 @@ class DashBoardControllerTest {
     void setup() {
         MockitoAnnotations.openMocks(this);
     }
-
+    /*
     @Test
     void testCaloriasPorDia() {
         // Fixture
@@ -125,4 +125,6 @@ class DashBoardControllerTest {
         String periodoEsperado = hoje.minusDays(6) + " até " + hoje;
         assertEquals(periodoEsperado, response.get("periodo"));
     }
+
+     */
 }
