@@ -7,6 +7,7 @@ import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -34,7 +35,7 @@ public class RefeicaoService {
         refeicaoRepository.delete(refeicao);
     }
 
-    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, int quantidade) {
+    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, double quantidade) {
         Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
@@ -45,7 +46,13 @@ public class RefeicaoService {
         }
         Alimento alimento = optAlimento.get();
         Refeicao refeicao = optRefeicao.get();
-        refeicao.getAlimentos().add(alimento);
+
+        if (refeicao.getQuantidadePorAlimento() == null) {
+            refeicao.setQuantidadePorAlimento(new HashMap<>());
+        }
+
+        refeicao.getQuantidadePorAlimento().put(alimento, quantidade);
+
         return refeicaoRepository.save(refeicao);
 
     }
@@ -55,14 +62,19 @@ public class RefeicaoService {
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
         }
+        Optional<Alimento> optAlimento = alimentoRepository.findById((int) alimentoId);
+        if(optAlimento.isEmpty()) {
+            throw new RuntimeException("Alimento nao encontrado");
+        }
         Refeicao refeicao = optRefeicao.get();
-        List<Alimento> alimentos = refeicao.getAlimentos();
-        for(Alimento alimento : alimentos) {
-            if(alimento.getId() == alimentoId) {
-                refeicao.getAlimentos().remove(alimento);
-            }
+        Alimento alimento = optAlimento.get();
+
+        if (refeicao.getQuantidadePorAlimento() != null) {
+            refeicao.getQuantidadePorAlimento().remove(alimento);
         }
         return refeicaoRepository.save(refeicao);
     }
+
+    
 
 }

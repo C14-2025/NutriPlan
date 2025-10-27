@@ -13,7 +13,7 @@ public class Alimento {
 
     private String nome;
 
-    // Valores por 100g
+    // PADRÃO: ALIMENTO GUARDA VALORES DE 100g
     private Double calorias;
     private Double carboidratos;
     private Double proteinas;

@@ -1,7 +1,6 @@
 package br.inatel.nutriPlan.Models;
 
 import br.inatel.nutriPlan.models.Alimento;
-import br.inatel.nutriPlan.models.Nutriente;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.models.Usuario;
 import org.junit.jupiter.api.BeforeEach;

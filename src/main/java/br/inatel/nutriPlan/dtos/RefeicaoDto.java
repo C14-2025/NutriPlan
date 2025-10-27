@@ -1,15 +1,13 @@
 package br.inatel.nutriPlan.dtos;
 
-import br.inatel.nutriPlan.models.Nutriente;
 import br.inatel.nutriPlan.models.Usuario;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class RefeicaoDto {
     private String tipo;
     private Usuario usuario;
-    private List<Nutriente> nutrientes;
+    private List<AlimentoQuantidadeDto> alimentos; //nao é indicado usar map aqui
 
     public String getTipo() {
         return tipo;
@@ -28,11 +26,5 @@ public class RefeicaoDto {
         this.usuario = usuario;
     }
 
-    public List<Nutriente> getNutrientes() {
-        return nutrientes;
-    }
 
-    public void setNutrientes(List<Nutriente> nutrientes) {
-        this.nutrientes = nutrientes;
-    }
 }

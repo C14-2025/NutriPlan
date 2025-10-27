@@ -1,7 +1,6 @@
 package br.inatel.nutriPlan.controllers;
 
 import br.inatel.nutriPlan.models.Alimento;
-import br.inatel.nutriPlan.models.Nutriente;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +14,6 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 class DashBoardControllerTest {
 
