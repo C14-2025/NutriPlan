@@ -17,7 +17,7 @@ public class Teste {
     private Refeicao refeicao;
     private Alimento alimento;
     //private Nutriente nutriente;
-    /*
+
     @BeforeEach
     public void setup() {
         // Criar usuário
@@ -35,7 +35,7 @@ public class Teste {
         refeicao.setTipo("Almoço");
         refeicao.setDataHora(LocalDateTime.now());
         refeicao.setUsuario(usuario);
-        refeicao.setNutrientes(new ArrayList<>());
+        //refeicao.setNutrientes(new ArrayList<>());
 
         // Criar alimento
         alimento = new Alimento();
@@ -46,14 +46,16 @@ public class Teste {
         alimento.setGorduras(11.0);
 
         // Criar nutriente
+        /*
         nutriente = new Nutriente();
         nutriente.setQuantidade(50.0);
         nutriente.setAlimento(alimento);
         nutriente.setRefeicao(refeicao);
+        */
     }
 
 
-     */
+     
     @Test
     public void usuarioTest() {
         assertEquals("Sabrina", usuario.getNome());
