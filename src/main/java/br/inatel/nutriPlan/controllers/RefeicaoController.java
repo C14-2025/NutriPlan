@@ -71,9 +71,11 @@ public class RefeicaoController {
         return ResponseEntity.status(HttpStatus.OK).body(refeicaoService.save(refeicaoModel)); //salvando
     }
 
-    @PostMapping("/{refeicaoId}/alimentos/{alimentoId}")
-    public ResponseEntity<Refeicao> adicionarAlimento(@PathVariable long refeicaoId, @PathVariable long alimentoId) {
-        Refeicao refeicao = refeicaoService.adicionarAlimento(refeicaoId, alimentoId);
+    @PostMapping("/{refeicaoId}/alimentos")
+    public ResponseEntity<Refeicao> adicionarAlimento(@PathVariable long refeicaoId,
+                                                      @RequestParam long alimentoId,
+                                                      @RequestParam int quantidade) {
+        Refeicao refeicao = refeicaoService.adicionarAlimento(refeicaoId, alimentoId,quantidade);
         return ResponseEntity.status(HttpStatus.CREATED).body(refeicao);
     }
 

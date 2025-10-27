@@ -9,7 +9,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class RefeicaoService {
@@ -35,7 +34,7 @@ public class RefeicaoService {
         refeicaoRepository.delete(refeicao);
     }
 
-    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId) {
+    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, int quantidade) {
         Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
