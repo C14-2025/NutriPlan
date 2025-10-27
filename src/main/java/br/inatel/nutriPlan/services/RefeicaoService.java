@@ -7,7 +7,9 @@ import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -34,18 +36,24 @@ public class RefeicaoService {
         refeicaoRepository.delete(refeicao);
     }
 
-    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, int quantidade) {
+    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, double quantidade) {
         Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
         }
-        Optional<Alimento> optAlimento = alimentoRepository.findById((int) alimentoId);
+        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
         if(optAlimento.isEmpty()) {
             throw new RuntimeException("Alimento nao encontrado");
         }
         Alimento alimento = optAlimento.get();
         Refeicao refeicao = optRefeicao.get();
-        refeicao.getAlimentos().add(alimento);
+
+        if (refeicao.getQuantidadePorAlimento() == null) {
+            refeicao.setQuantidadePorAlimento(new HashMap<>());
+        }
+
+        refeicao.getQuantidadePorAlimento().put(alimento, quantidade);
+
         return refeicaoRepository.save(refeicao);
 
     }
@@ -55,14 +63,47 @@ public class RefeicaoService {
         if(optRefeicao.isEmpty()) {
             throw new RuntimeException("Refeicao nao encontrada");
         }
+        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
+        if(optAlimento.isEmpty()) {
+            throw new RuntimeException("Alimento nao encontrado");
+        }
         Refeicao refeicao = optRefeicao.get();
-        List<Alimento> alimentos = refeicao.getAlimentos();
-        for(Alimento alimento : alimentos) {
-            if(alimento.getId() == alimentoId) {
-                refeicao.getAlimentos().remove(alimento);
-            }
+        Alimento alimento = optAlimento.get();
+
+        if (refeicao.getQuantidadePorAlimento() != null) {
+            refeicao.getQuantidadePorAlimento().remove(alimento);
         }
         return refeicaoRepository.save(refeicao);
+    }
+
+    public Map<String,Double> calcularTotaisNutricionais(long refeicaoId){
+        Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
+        if(optRefeicao.isEmpty()) {
+            throw new RuntimeException("Refeicao nao encontrada");
+        }
+        Refeicao refeicao = optRefeicao.get();
+        double totalCalorias = 0;
+        double totalProteinas = 0;
+        double totalCarboidratos = 0;
+        double totalGorduras = 0;
+
+        if(refeicao.getQuantidadePorAlimento() != null) {
+            for(Map.Entry<Alimento,Double> entry: refeicao.getQuantidadePorAlimento().entrySet()) {
+                Alimento alimento = entry.getKey();
+                double quantidadePorAlimento = entry.getValue();
+                totalCalorias += (alimento.getCalorias()/100) * quantidadePorAlimento;
+                totalProteinas += (alimento.getProteinas()/100) * quantidadePorAlimento;
+                totalCarboidratos += (alimento.getCarboidratos()/100) * quantidadePorAlimento;
+                totalGorduras += (alimento.getGorduras()/100) * quantidadePorAlimento;
+            }
+        }
+
+        Map<String,Double> resultado = new HashMap<>();
+        resultado.put("Calorias", totalCalorias);
+        resultado.put("Proteinas", totalProteinas);
+        resultado.put("Carboidratos", totalCarboidratos);
+        resultado.put("Gorduras", totalGorduras);
+        return resultado;
     }
 
 }

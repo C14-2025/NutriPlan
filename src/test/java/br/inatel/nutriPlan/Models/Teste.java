@@ -1,7 +1,6 @@
 package br.inatel.nutriPlan.Models;
 
 import br.inatel.nutriPlan.models.Alimento;
-import br.inatel.nutriPlan.models.Nutriente;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.models.Usuario;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +16,7 @@ public class Teste {
     private Usuario usuario;
     private Refeicao refeicao;
     private Alimento alimento;
-    private Nutriente nutriente;
+    //private Nutriente nutriente;
 
     @BeforeEach
     public void setup() {
@@ -36,7 +35,7 @@ public class Teste {
         refeicao.setTipo("Almoço");
         refeicao.setDataHora(LocalDateTime.now());
         refeicao.setUsuario(usuario);
-        refeicao.setNutrientes(new ArrayList<>());
+        //refeicao.setNutrientes(new ArrayList<>());
 
         // Criar alimento
         alimento = new Alimento();
@@ -47,12 +46,16 @@ public class Teste {
         alimento.setGorduras(11.0);
 
         // Criar nutriente
+        /*
         nutriente = new Nutriente();
         nutriente.setQuantidade(50.0);
         nutriente.setAlimento(alimento);
         nutriente.setRefeicao(refeicao);
+        */
     }
 
+
+     
     @Test
     public void usuarioTest() {
         assertEquals("Sabrina", usuario.getNome());
@@ -72,7 +75,7 @@ public class Teste {
         assertEquals("Almoço", usuario.getRefeicoes().get(0).getTipo());
         assertEquals(usuario, usuario.getRefeicoes().get(0).getUsuario());
     }
-
+    /*
     @Test
     public void nutrienteTest() {
         // Adiciona o nutriente à refeição
@@ -83,5 +86,7 @@ public class Teste {
         assertEquals(refeicao, refeicao.getNutrientes().get(0).getRefeicao());
         assertEquals(50.0, refeicao.getNutrientes().get(0).getQuantidade());
     }
+
+     */
 }
 
