@@ -10,6 +10,42 @@ public class Nutriente {
     private Long id;
 
     private Double quantidade; // em gramas
+    private Double calorias;
+    private Double carboidratos;
+    private Double proteinas;
+    private Double gorduras;
+
+    public Double getCalorias() {
+        return calorias;
+    }
+
+    public void setCalorias(Double calorias) {
+        this.calorias = calorias;
+    }
+
+    public Double getCarboidratos() {
+        return carboidratos;
+    }
+
+    public void setCarboidratos(Double carboidratos) {
+        this.carboidratos = carboidratos;
+    }
+
+    public Double getProteinas() {
+        return proteinas;
+    }
+
+    public void setProteinas(Double proteinas) {
+        this.proteinas = proteinas;
+    }
+
+    public Double getGorduras() {
+        return gorduras;
+    }
+
+    public void setGorduras(Double gorduras) {
+        this.gorduras = gorduras;
+    }
 
     @ManyToOne
     @JoinColumn(name = "refeicao_id")
@@ -31,7 +67,7 @@ public class Nutriente {
 
     public Alimento getAlimento() { return alimento; }
     public void setAlimento(Alimento alimento) { this.alimento = alimento; }
-    
+
 
     public double getCaloriasCalculadas() {
         if (alimento == null || quantidade == null) return 0;
