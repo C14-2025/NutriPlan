@@ -1,9 +1,6 @@
 package br.inatel.nutriPlan.controllers;
 
-import br.inatel.nutriPlan.dtos.AlimentoDto;
-import br.inatel.nutriPlan.dtos.AlimentoQuantidadeDto;
-import br.inatel.nutriPlan.dtos.RefeicaoDto;
-import br.inatel.nutriPlan.dtos.TotaisNutricionaisDto;
+import br.inatel.nutriPlan.dtos.*;
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
@@ -117,6 +114,15 @@ public class RefeicaoController {
             }
         }
         return ResponseEntity.ok(alimentosDto);
+    }
+
+    @GetMapping("/usuario/{usuarioId}")
+    public ResponseEntity<List<Refeicao>> getRefeicoesPorUsuario(@PathVariable long usuarioId) {
+        List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId);
+        if(refeicoes.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        return ResponseEntity.ok(refeicoes);
     }
 
 }

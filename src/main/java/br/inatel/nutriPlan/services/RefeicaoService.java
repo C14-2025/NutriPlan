@@ -106,4 +106,8 @@ public class RefeicaoService {
         return resultado;
     }
 
+    public List<Refeicao> findByUsuarioId(Long usuarioId) {
+        return refeicaoRepository.findByUsuarioId(usuarioId);
+    }
+
 }
