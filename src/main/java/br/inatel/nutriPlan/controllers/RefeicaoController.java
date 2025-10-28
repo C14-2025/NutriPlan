@@ -115,7 +115,7 @@ public class RefeicaoController {
         }
         return ResponseEntity.ok(alimentosDto);
     }
-
+    
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<Refeicao>> getRefeicoesPorUsuario(@PathVariable long usuarioId) {
         List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId);
