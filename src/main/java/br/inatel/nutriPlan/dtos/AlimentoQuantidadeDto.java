@@ -4,6 +4,11 @@ public class AlimentoQuantidadeDto {
     private Long alimentoId;
     private Double quantidade;
 
+    public AlimentoQuantidadeDto(Long alimentoId, Double quantidade) {
+        this.alimentoId = alimentoId;
+        this.quantidade = quantidade;
+    }
+
     public Long getAlimentoId() {
         return alimentoId;
     }

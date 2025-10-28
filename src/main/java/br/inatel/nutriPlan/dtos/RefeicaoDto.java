@@ -26,5 +26,11 @@ public class RefeicaoDto {
         this.usuario = usuario;
     }
 
+    public List<AlimentoQuantidadeDto> getAlimentos() {
+        return alimentos;
+    }
 
+    public void setAlimentos(List<AlimentoQuantidadeDto> alimentos) {
+        this.alimentos = alimentos;
+    }
 }
