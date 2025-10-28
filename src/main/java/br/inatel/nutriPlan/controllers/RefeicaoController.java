@@ -1,6 +1,9 @@
 package br.inatel.nutriPlan.controllers;
 
+import br.inatel.nutriPlan.dtos.AlimentoDto;
+import br.inatel.nutriPlan.dtos.AlimentoQuantidadeDto;
 import br.inatel.nutriPlan.dtos.RefeicaoDto;
+import br.inatel.nutriPlan.dtos.TotaisNutricionaisDto;
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
@@ -15,9 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @RestController
 @RequestMapping("/refeicao")
@@ -83,6 +84,39 @@ public class RefeicaoController {
     public ResponseEntity<Refeicao> removerAlimento(@PathVariable long refeicaoId, @PathVariable long alimentoId) {
         Refeicao refeicao = refeicaoService.removerAlimento(refeicaoId, alimentoId);
         return ResponseEntity.status(HttpStatus.OK).body(refeicao);
+    }
+
+    @GetMapping("/{id}/totais")
+    public ResponseEntity<TotaisNutricionaisDto> getTotaisNutricionais(@PathVariable long id){
+        Map<String, Double> totaisMap = refeicaoService.calcularTotaisNutricionais(id);
+        TotaisNutricionaisDto totaisDto = new TotaisNutricionaisDto(
+                totaisMap.get("Calorias"),
+                totaisMap.get("Proteinas"),
+                totaisMap.get("Carboidratos"),
+                totaisMap.get("Gorduras")
+        );
+        return ResponseEntity.status(HttpStatus.OK).body(totaisDto);
+    }
+
+    @GetMapping("/{id}/alimentos")
+    public ResponseEntity<List<AlimentoQuantidadeDto>> getAlimentos(@PathVariable long id){
+        Optional<Refeicao> optRefeicao = refeicaoService.findById(id);
+        if(optRefeicao.isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        Refeicao refeicao = optRefeicao.get();
+        if(refeicao.getAlimentos().isEmpty() || refeicao.getQuantidadePorAlimento().isEmpty()){
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+        List<AlimentoQuantidadeDto> alimentosDto = new ArrayList<>();
+        if(refeicao.getQuantidadePorAlimento() != null){
+            for(Map.Entry<Alimento,Double> entry : refeicao.getQuantidadePorAlimento().entrySet()){
+                Alimento alimento = entry.getKey();
+                double quantidade = entry.getValue();
+                alimentosDto.add(new AlimentoQuantidadeDto(alimento.getId(),quantidade));
+            }
+        }
+        return ResponseEntity.ok(alimentosDto);
     }
 
 }
