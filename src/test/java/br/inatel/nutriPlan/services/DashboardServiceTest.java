@@ -1,12 +1,10 @@
 package br.inatel.nutriPlan.services;
+
 import br.inatel.nutriPlan.models.Refeicao;
-
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;

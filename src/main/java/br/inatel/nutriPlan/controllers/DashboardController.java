@@ -14,7 +14,7 @@ import java.util.Map;
 public class DashboardController {
 
     @Autowired
-    private final DashboardService dashboardService;
+    private DashboardService dashboardService;
 
     public DashboardController(DashboardService dashboardService) {
         this.dashboardService = dashboardService;
