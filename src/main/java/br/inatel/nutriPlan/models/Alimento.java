@@ -2,6 +2,8 @@ package br.inatel.nutriPlan.models;
 
 import jakarta.persistence.*;
 
+import java.util.List;
+
 @Entity
 public class Alimento {
 
@@ -11,11 +13,15 @@ public class Alimento {
 
     private String nome;
 
-    // Valores por 100g
+    // PADRÃO: ALIMENTO GUARDA VALORES DE 100g
     private Double calorias;
     private Double carboidratos;
     private Double proteinas;
     private Double gorduras;
+
+    @ManyToMany(mappedBy = "alimentos")
+    private List<Refeicao> refeicoes;
+
 
     // Getters e Setters
     public Long getId() {
