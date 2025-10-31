@@ -154,7 +154,7 @@ export function MealForm({ onAddMeal }: MealFormProps) {
             id="meal-name"
             value={mealName}
             onChange={(e) => setMealName(e.target.value)}
-            placeholder="Ex: Café da manhã"
+            placeholder="Adicionar Refeição"
             required
           />
         </div>
