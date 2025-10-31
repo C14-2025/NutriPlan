@@ -1,130 +1,62 @@
 package br.inatel.nutriPlan.controllers;
 
-import br.inatel.nutriPlan.models.Alimento;
-import br.inatel.nutriPlan.models.Refeicao;
-import br.inatel.nutriPlan.repositories.RefeicaoRepository;
+import br.inatel.nutriPlan.services.DashboardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.time.LocalDateTime;
+import org.mockito.Mockito;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.*;
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 import java.time.LocalDate;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 class DashBoardControllerTest {
 
-    @Mock
-    private RefeicaoRepository refeicaoRepository;
-
-    @InjectMocks
-    private DashboardController controller;
+    private MockMvc mockMvc;
+    private DashboardService dashboardServiceMock;
 
     @BeforeEach
     void setup() {
-        MockitoAnnotations.openMocks(this);
-    }
-    /*
-    @Test
-    void testCaloriasPorDia() {
-        // Fixture
-        Alimento arroz = new Alimento();
-        arroz.setCalorias(130.0);
+        dashboardServiceMock = Mockito.mock(DashboardService.class);
 
-        Nutriente n = new Nutriente();
-        n.setAlimento(arroz);
-        n.setQuantidade(100.0);
-
-        Refeicao refeicao = new Refeicao();
-        refeicao.setDataHora(LocalDateTime.now());
-        refeicao.setNutrientes(List.of(n));
-
-        when(refeicaoRepository.findAll()).thenReturn(List.of(refeicao));
-
-        // Chamada do método
-        Map<?, ?> response = controller.getCaloriasPorDia();
-
-        assertFalse(response.isEmpty());
-        assertTrue(response.values().stream().anyMatch(v -> (Double) v == 130.0));
+        DashboardController controller = new DashboardController(dashboardServiceMock);
+        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
     @Test
-    void testMacrosPorDia() {
-        LocalDateTime agora = LocalDateTime.now();
+    void testGetCaloriasPorDia() throws Exception {
+        Map<LocalDate, Double> fakeResponse = Map.of(LocalDate.of(2025,1,1), 2000.0);
 
-        Alimento ovo = new Alimento();
-        ovo.setCarboidratos(1.0);
-        ovo.setProteinas(13.0);
-        ovo.setGorduras(11.0);
+        when(dashboardServiceMock.calcularCaloriasPorDia()).thenReturn(fakeResponse);
 
-        Nutriente n = new Nutriente();
-        n.setAlimento(ovo);
-        n.setQuantidade(100.0);
-
-        Refeicao refeicao = new Refeicao();
-        refeicao.setDataHora(agora);
-        refeicao.setNutrientes(List.of(n));
-
-        when(refeicaoRepository.findAll()).thenReturn(List.of(refeicao));
-
-        String hoje = agora.toLocalDate().toString();
-        Map<String, Double> response = controller.getMacrosPorDia(hoje);
-
-        assertEquals(1.0, response.get("carboidratos"));
-        assertEquals(13.0, response.get("proteinas"));
-        assertEquals(11.0, response.get("gorduras"));
+        mockMvc.perform(get("/dashboard/calorias-por-dia"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"2025-01-01\":2000.0}"));
     }
 
     @Test
-    void testRelatorioSemanal() {
-        when(refeicaoRepository.findAll()).thenReturn(Collections.emptyList());
+    void testGetMacrosPorDia() throws Exception {
+        Map<String, Double> fakeResponse = Map.of("proteina", 150.0, "carboidrato", 250.0);
 
-        Map<String, Object> response = controller.getRelatorioSemanal();
+        when(dashboardServiceMock.calcularMacrosPorDia(LocalDate.parse("2025-01-01")))
+                .thenReturn(fakeResponse);
 
-        assertTrue(response.containsKey("periodo"));
-        assertEquals(0.0, response.get("totalCalorias"));
+        mockMvc.perform(get("/dashboard/macros-por-dia/2025-01-01"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"proteina\":150.0,\"carboidrato\":250.0}"));
     }
 
     @Test
-    void testRelatorioSemanalComDadosNoPeriodo() {
-        // Fixture: hoje e início da semana (7 dias atrás)
-        LocalDate hoje = LocalDate.now();
-        LocalDateTime dataDentroPeriodo = hoje.atStartOfDay();
+    void testGetRelatorioSemanal() throws Exception {
+        Map<String, Object> fakeResponse = Map.of("mediaCalorias", 1800.0);
 
-        Alimento frango = new Alimento();
-        frango.setCalorias(165.0);
-        frango.setCarboidratos(0.0);
-        frango.setProteinas(31.0);
-        frango.setGorduras(3.6);
+        when(dashboardServiceMock.gerarRelatorioSemanal()).thenReturn(fakeResponse);
 
-        Nutriente nutriente = new Nutriente();
-        nutriente.setAlimento(frango);
-        nutriente.setQuantidade(100.0); // 100g
-
-        Refeicao refeicao = new Refeicao();
-        refeicao.setDataHora(dataDentroPeriodo);
-        refeicao.setNutrientes(List.of(nutriente));
-
-        // Mock do repositório retornando a refeição dentro do período
-        when(refeicaoRepository.findAll()).thenReturn(List.of(refeicao));
-
-        // Chamada do método
-        Map<String, Object> response = controller.getRelatorioSemanal();
-
-        // Validações
-        assertNotNull(response);
-        assertEquals(165.0, response.get("totalCalorias"));
-        assertEquals(165.0 / 7, response.get("mediaCaloriasDia"));
-        assertEquals(0.0, response.get("totalCarboidratos"));
-        assertEquals(31.0, response.get("totalProteinas"));
-        assertEquals(3.6, response.get("totalGorduras"));
-
-        String periodoEsperado = hoje.minusDays(6) + " até " + hoje;
-        assertEquals(periodoEsperado, response.get("periodo"));
+        mockMvc.perform(get("/dashboard/relatorio-semanal"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("{\"mediaCalorias\":1800.0}"));
     }
-
-     */
 }
