@@ -26,6 +26,6 @@ public class AlimentoService {
     }
 
     public Optional<Alimento> findById(long id) {
-        return alimentoRepository.findById((int) id);
+        return alimentoRepository.findById(id);
     }
 }

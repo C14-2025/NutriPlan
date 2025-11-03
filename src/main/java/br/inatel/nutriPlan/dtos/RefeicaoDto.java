@@ -1,15 +1,18 @@
 package br.inatel.nutriPlan.dtos;
 
-import br.inatel.nutriPlan.models.Nutriente;
 import br.inatel.nutriPlan.models.Usuario;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public class RefeicaoDto {
+    @NotBlank(message = "O tipo da refeição não pode ser vazio")
     private String tipo;
+
+    @NotNull(message = "O usuário deve ser informado")
     private Usuario usuario;
-    private List<Nutriente> nutrientes;
+    private List<AlimentoQuantidadeDto> alimentos; //nao é indicado usar map aqui
 
     public String getTipo() {
         return tipo;
@@ -28,11 +31,11 @@ public class RefeicaoDto {
         this.usuario = usuario;
     }
 
-    public List<Nutriente> getNutrientes() {
-        return nutrientes;
+    public List<AlimentoQuantidadeDto> getAlimentos() {
+        return alimentos;
     }
 
-    public void setNutrientes(List<Nutriente> nutrientes) {
-        this.nutrientes = nutrientes;
+    public void setAlimentos(List<AlimentoQuantidadeDto> alimentos) {
+        this.alimentos = alimentos;
     }
 }
