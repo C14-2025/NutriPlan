@@ -14,7 +14,6 @@ public class UsuarioDto {
     private Double peso;
     private Double altura;
     private String objetivo;
-
     private List<Refeicao> refeicoes;
 
     public String getNome() {
