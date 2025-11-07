@@ -3,8 +3,10 @@ package br.inatel.nutriPlan.controllers;
 import br.inatel.nutriPlan.dtos.*;
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Refeicao;
+import br.inatel.nutriPlan.models.Usuario;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import br.inatel.nutriPlan.services.RefeicaoService;
+import br.inatel.nutriPlan.services.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ public class RefeicaoController {
     @Autowired
     private RefeicaoService refeicaoService;
 
+    @Autowired
+    private UsuarioService usuarioService;
+
     @GetMapping
     public ResponseEntity<List<Refeicao>> getAllRefeicoes() {
         return ResponseEntity.status(HttpStatus.OK).body(refeicaoService.findAll());
@@ -40,9 +45,18 @@ public class RefeicaoController {
 
     @PostMapping
     public ResponseEntity<Object> saveRefeicao(@RequestBody @Valid RefeicaoDto refeicaoDto) {
+        if (refeicaoDto.getUsuario() == null || refeicaoDto.getUsuario().getId() == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("O ID do usuário é obrigatório.");
+        }
+
         var refeicaoModel = new Refeicao();
         BeanUtils.copyProperties(refeicaoDto, refeicaoModel); //converção de dto para model
         refeicaoModel.setDataHora(LocalDateTime.now(ZoneId.of("UTC")));
+
+        Usuario usuario = usuarioService.findById(refeicaoDto.getUsuario().getId())
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        refeicaoModel.setUsuario(usuario);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(refeicaoService.save(refeicaoModel));
     }
 
