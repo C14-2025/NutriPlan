@@ -14,7 +14,7 @@ public class UsuarioDto {
     private Double peso;
     private Double altura;
     private String objetivo;
-    private List<Refeicao> refeicoes;
+    private List<Long> refeicaoIds;
 
     public String getNome() {
         return nome;
@@ -72,11 +72,11 @@ public class UsuarioDto {
         this.objetivo = objetivo;
     }
 
-    public List<Refeicao> getRefeicoes() {
-        return refeicoes;
+    public List<Long> getRefeicaoIds() {
+        return refeicaoIds;
     }
 
-    public void setRefeicoes(List<Refeicao> refeicoes) {
-        this.refeicoes = refeicoes;
+    public void setRefeicaoIds(List<Long> refeicaoIds) {
+        this.refeicaoIds = refeicaoIds;
     }
 }

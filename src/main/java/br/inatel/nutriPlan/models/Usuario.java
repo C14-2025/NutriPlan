@@ -1,5 +1,6 @@
 package br.inatel.nutriPlan.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.util.List;
 
@@ -19,7 +20,8 @@ public class Usuario {
     private Double altura;
     private String objetivo;
 
-    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL)
+    @JsonIgnore
+    @OneToMany(mappedBy = "usuario")
     private List<Refeicao> refeicoes;
 
     // Getters e Setters

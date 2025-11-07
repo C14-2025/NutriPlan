@@ -110,4 +110,7 @@ public class RefeicaoService {
         return refeicaoRepository.findByUsuarioId(usuarioId);
     }
 
+    public List<Refeicao> findAllById(List<Long> refeicaoIds) {
+        return refeicaoRepository.findAllById(refeicaoIds);
+    }
 }
