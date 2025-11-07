@@ -7,10 +7,7 @@ import br.inatel.nutriPlan.repositories.RefeicaoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class RefeicaoService {
@@ -48,14 +45,19 @@ public class RefeicaoService {
         Alimento alimento = optAlimento.get();
         Refeicao refeicao = optRefeicao.get();
 
+        if (refeicao.getAlimentos() == null) {
+            refeicao.setAlimentos(new ArrayList<>());
+        }
         if (refeicao.getQuantidadePorAlimento() == null) {
             refeicao.setQuantidadePorAlimento(new HashMap<>());
+        }
+        if (!refeicao.getAlimentos().contains(alimento)) {
+            refeicao.getAlimentos().add(alimento);
         }
 
         refeicao.getQuantidadePorAlimento().put(alimento, quantidade);
 
         return refeicaoRepository.save(refeicao);
-
     }
 
     public Refeicao removerAlimento(long refeicaoId, long alimentoId) {
