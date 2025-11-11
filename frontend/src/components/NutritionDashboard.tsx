@@ -3,35 +3,28 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Progress } from './ui/progress';
 import {
   PieChart, Pie, Cell, ResponsiveContainer,
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, LineChart, Line
+  LineChart, Line, CartesianGrid, XAxis, YAxis, Tooltip, Legend
 } from 'recharts';
-import type { Meal, UserGoals } from '../App';
+import type { UserGoals } from '../App';
 import { Calendar, Target, TrendingUp } from 'lucide-react';
 import { api } from '../services/api';
 
 interface NutritionDashboardProps {
-  meals: Meal[];
   userGoals: UserGoals;
 }
 
-export function NutritionDashboard({ meals, userGoals }: NutritionDashboardProps) {
+export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
   const [weeklyData, setWeeklyData] = useState<any[]>([]);
   const [macrosToday, setMacrosToday] = useState<{ protein: number, carbs: number, fat: number } | null>(null);
   const [caloriasPorDia, setCaloriasPorDia] = useState<Record<string, number>>({});
+  const [todayTotals, setTodayTotals] = useState({
+    calories: 0,
+    protein: 0,
+    carbs: 0,
+    fat: 0
+  });
 
   const today = new Date().toISOString().split('T')[0];
-  const todayMeals = meals.filter(meal => meal.date === today);
-
-  // Totais de hoje vindos das refeições locais (do App)
-  const todayTotals = todayMeals.reduce(
-      (acc, meal) => ({
-        calories: acc.calories + meal.totalCalories,
-        protein: acc.protein + meal.totalProtein,
-        carbs: acc.carbs + meal.totalCarbs,
-        fat: acc.fat + meal.totalFat
-      }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 }
-  );
 
   // Buscar dados do backend
   useEffect(() => {
@@ -46,6 +39,16 @@ export function NutritionDashboard({ meals, userGoals }: NutritionDashboardProps
         setCaloriasPorDia(calRes.data);
         setMacrosToday(macrosRes.data);
         setWeeklyData(semanalRes.data?.semanal || []);
+
+        // Atualizar todayTotals com dados do backend
+        const calories = calRes.data[today] || 0;
+        const macros = macrosRes.data || { protein: 0, carbs: 0, fat: 0 };
+        setTodayTotals({
+          calories,
+          protein: macros.protein,
+          carbs: macros.carbs,
+          fat: macros.fat
+        });
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
       }
@@ -60,21 +63,12 @@ export function NutritionDashboard({ meals, userGoals }: NutritionDashboardProps
   const carbsProgress = Math.min((todayTotals.carbs / userGoals.dailyCarbs) * 100, 100);
   const fatProgress = Math.min((todayTotals.fat / userGoals.dailyFat) * 100, 100);
 
-  // Dados do gráfico de macros (usa os dados do backend se existirem, senão os locais)
+  // Dados do gráfico de macros (usando macrosToday)
   const macroData = [
-    { name: 'Proteína', value: (macrosToday?.protein ?? todayTotals.protein) * 4, color: '#8884d8' },
-    { name: 'Carboidratos', value: (macrosToday?.carbs ?? todayTotals.carbs) * 4, color: '#82ca9d' },
-    { name: 'Gordura', value: (macrosToday?.fat ?? todayTotals.fat) * 9, color: '#ffc658' }
+    { name: 'Proteína', value: (macrosToday?.protein || 0) * 4, color: '#8884d8' },
+    { name: 'Carboidratos', value: (macrosToday?.carbs || 0) * 4, color: '#82ca9d' },
+    { name: 'Gordura', value: (macrosToday?.fat || 0) * 9, color: '#ffc658' }
   ];
-
-  // Distribuição das refeições (mantém seu código)
-  const mealDistribution = todayMeals.map(meal => ({
-    name: meal.name,
-    calories: meal.totalCalories,
-    protein: meal.totalProtein,
-    carbs: meal.totalCarbs,
-    fat: meal.totalFat
-  }));
 
   return (
       <div className="space-y-6">
@@ -168,24 +162,7 @@ export function NutritionDashboard({ meals, userGoals }: NutritionDashboardProps
             </CardContent>
           </Card>
 
-          {/* Meal Distribution */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Distribuição por Refeição</CardTitle>
-              <CardDescription>Calorias consumidas por refeição hoje</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={mealDistribution}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="calories" fill="#8884d8" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+          {/* Removemos o gráfico de distribuição por refeição */}
         </div>
 
         {/* Weekly Trends */}
