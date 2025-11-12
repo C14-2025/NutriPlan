@@ -86,7 +86,7 @@ public class RefeicaoController {
     @PostMapping("/{refeicaoId}/alimentos")
     public ResponseEntity<Refeicao> adicionarAlimento(@PathVariable long refeicaoId,
                                                       @RequestParam long alimentoId,
-                                                      @RequestParam int quantidade) {
+                                                      @RequestParam double quantidade) {
         Refeicao refeicao = refeicaoService.adicionarAlimento(refeicaoId, alimentoId,quantidade);
         return ResponseEntity.status(HttpStatus.CREATED).body(refeicao);
     }
