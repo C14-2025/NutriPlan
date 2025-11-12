@@ -20,7 +20,6 @@ public class DashboardService {
         this.refeicaoService = refeicaoService;
     }
 
-    // Mantém o original, talvez seja útil para outras funcionalidades
     public Map<LocalDate, Double> calcularCaloriasPorDia(long usuarioId) {
         List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId);
         Map<LocalDate, Double> caloriasPorDia = new HashMap<>();
@@ -46,7 +45,6 @@ public class DashboardService {
                 ));
     }
 
-    // ALTERADO: Agora retorna os totais completos (calorias, proteinas, etc.) para o dia
     public Map<String, Double> calcularMacrosPorDia(long usuarioId, LocalDate dia) {
         List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId)
                 .stream()
@@ -63,7 +61,6 @@ public class DashboardService {
             gord += totais.getOrDefault("Gorduras", 0.0);
         }
 
-        // Retorna o objeto completo, como o TotaisNutricionaisDto, mas como Map
         Map<String, Double> resultado = new HashMap<>();
         resultado.put("calorias", calorias);
         resultado.put("carboidratos", carb);
@@ -73,36 +70,32 @@ public class DashboardService {
         return resultado;
     }
 
-    // ALTERADO: Agora retorna uma lista com os totais diários para os últimos 7 dias
-    // Corrigido para evitar o erro de variável não-final no lambda
     public List<Map<String, Object>> gerarRelatorioSemanal(long usuarioId) {
         LocalDate hoje = LocalDate.now();
-        LocalDate inicioDaSemana = hoje.minusDays(6); // Últimos 7 dias
+        LocalDate inicioDaSemana = hoje.minusDays(6);
 
         List<Map<String, Object>> relatorio = new ArrayList<>();
 
-        // Busca todas as refeições do usuário
         List<Refeicao> todasAsRefeicoes = refeicaoService.findByUsuarioId(usuarioId);
 
-        // Filtra e agrupa as refeições por dia dentro do intervalo
         Map<LocalDate, List<Refeicao>> refeicoesPorDia = todasAsRefeicoes.stream()
                 .filter(r -> r.getDataHora() != null)
-                .map(r -> r.getDataHora().toLocalDate()) // Extrai a data
-                .filter(dia -> !dia.isBefore(inicioDaSemana) && !dia.isAfter(hoje)) // Filtra o intervalo
-                .distinct() // Obtém dias únicos
-                .sorted() // Ordena cronologicamente
+                .map(r -> r.getDataHora().toLocalDate())
+                .filter(dia -> !dia.isBefore(inicioDaSemana) && !dia.isAfter(hoje))
+                .distinct()
+                .sorted()
                 .collect(Collectors.toMap(
-                        date -> date, // Chave é a própria data
-                        date -> todasAsRefeicoes.stream() // Valor é a lista de refeições daquele dia
+                        date -> date,
+                        date -> todasAsRefeicoes.stream()
                                 .filter(r -> r.getDataHora().toLocalDate().equals(date))
                                 .collect(Collectors.toList()),
-                        (a, b) -> b, // Se houver conflito de chave (não deve), usa a segunda
-                        LinkedHashMap::new // Mantém a ordem de inserção
+                        (a, b) -> b,
+                        LinkedHashMap::new
                 ));
 
-        // Itera sobre os dias dentro do intervalo (mesmo que não tenha refeição)
+
         for (LocalDate dia = inicioDaSemana; !dia.isAfter(hoje); dia = dia.plusDays(1)) {
-            // Busca as refeições para o dia específico
+
             List<Refeicao> refeicoesDoDia = refeicoesPorDia.getOrDefault(dia, Collections.emptyList());
 
             double totalCalorias = 0, totalCarboidratos = 0, totalProteinas = 0, totalGorduras = 0;
@@ -116,7 +109,7 @@ public class DashboardService {
             }
 
             Map<String, Object> diaRelatorio = new HashMap<>();
-            diaRelatorio.put("day", dia.format(DateTimeFormatter.ISO_LOCAL_DATE)); // Formato "2025-11-12"
+            diaRelatorio.put("day", dia.format(DateTimeFormatter.ISO_LOCAL_DATE));
             diaRelatorio.put("calories", totalCalorias);
             diaRelatorio.put("protein", totalProteinas);
             diaRelatorio.put("carbs", totalCarboidratos);
