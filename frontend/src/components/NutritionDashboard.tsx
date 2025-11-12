@@ -7,16 +7,30 @@ import {
 } from 'recharts';
 import type { UserGoals } from '../App';
 import { Calendar, Target, TrendingUp } from 'lucide-react';
-import { api } from '../services/api';
+import { dashboardApi } from "../services/dashboardApi.ts";
 
 interface NutritionDashboardProps {
   userGoals: UserGoals;
 }
 
+interface MacrosDiarios {
+  calorias: number;
+  proteinas: number;
+  carboidratos: number;
+  gorduras: number;
+}
+
+interface RelatorioSemanalDiario {
+  day: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
-  const [weeklyData, setWeeklyData] = useState<any[]>([]);
-  const [macrosToday, setMacrosToday] = useState<{ protein: number, carbs: number, fat: number } | null>(null);
-  const [caloriasPorDia, setCaloriasPorDia] = useState<Record<string, number>>({});
+  const [weeklyData, setWeeklyData] = useState<RelatorioSemanalDiario[]>([]);
+  const [macrosToday, setMacrosToday] = useState<MacrosDiarios | null>(null);
   const [todayTotals, setTodayTotals] = useState({
     calories: 0,
     protein: 0,
@@ -24,55 +38,51 @@ export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
     fat: 0
   });
 
-  const today = new Date().toISOString().split('T')[0];
-
-  // Buscar dados do backend
+  // useEffect para buscar os dados do backend
   useEffect(() => {
     async function fetchDashboardData() {
       try {
-        const [calRes, macrosRes, semanalRes] = await Promise.all([
-          api.get("/dashboard/calorias-por-dia"),
-          api.get(`/dashboard/macros-por-dia/${today}`),
-          api.get("/dashboard/relatorio-semanal")
+        const usuarioId = 1;
+        const today = new Date().toISOString().split('T')[0];
+
+        const [macrosRes, semanalRes] = await Promise.all([
+          dashboardApi.getMacrosPorDia(usuarioId, today),
+          dashboardApi.getRelatorioSemanal(usuarioId),
         ]);
 
-        setCaloriasPorDia(calRes.data);
-        setMacrosToday(macrosRes.data);
-        setWeeklyData(semanalRes.data?.semanal || []);
+        setMacrosToday(macrosRes);
+        setWeeklyData(semanalRes);
 
-        // Atualizar todayTotals com dados do backend
-        const calories = calRes.data[today] || 0;
-        const macros = macrosRes.data || { protein: 0, carbs: 0, fat: 0 };
         setTodayTotals({
-          calories,
-          protein: macros.protein,
-          carbs: macros.carbs,
-          fat: macros.fat
+          calories: macrosRes.calorias || 0,
+          protein: macrosRes.proteinas || 0,
+          carbs: macrosRes.carboidratos || 0,
+          fat: macrosRes.gorduras || 0,
         });
+
       } catch (error) {
         console.error("Erro ao buscar dados do dashboard:", error);
       }
     }
 
     fetchDashboardData();
-  }, [today]);
+  }, []);
 
-  // Calcular progresso
+
   const calorieProgress = Math.min((todayTotals.calories / userGoals.dailyCalories) * 100, 100);
   const proteinProgress = Math.min((todayTotals.protein / userGoals.dailyProtein) * 100, 100);
   const carbsProgress = Math.min((todayTotals.carbs / userGoals.dailyCarbs) * 100, 100);
   const fatProgress = Math.min((todayTotals.fat / userGoals.dailyFat) * 100, 100);
 
-  // Dados do gráfico de macros (usando macrosToday)
   const macroData = [
-    { name: 'Proteína', value: (macrosToday?.protein || 0) * 4, color: '#8884d8' },
-    { name: 'Carboidratos', value: (macrosToday?.carbs || 0) * 4, color: '#82ca9d' },
-    { name: 'Gordura', value: (macrosToday?.fat || 0) * 9, color: '#ffc658' }
+    { name: 'Proteína', value: (macrosToday?.proteinas || 0) * 4, color: '#8884d8' },
+    { name: 'Carboidratos', value: (macrosToday?.carboidratos || 0) * 4, color: '#82ca9d' },
+    { name: 'Gordura', value: (macrosToday?.gorduras || 0) * 9, color: '#ffc658' }
   ];
 
   return (
       <div className="space-y-6">
-        {/* Daily Overview */}
+        {/* Cards de Visão Geral Diária */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -131,9 +141,7 @@ export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
           </Card>
         </div>
 
-        {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Macro Distribution */}
           <Card>
             <CardHeader>
               <CardTitle>Distribuição de Macronutrientes</CardTitle>
@@ -161,11 +169,9 @@ export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
-          {/* Removemos o gráfico de distribuição por refeição */}
         </div>
 
-        {/* Weekly Trends */}
+
         <Card>
           <CardHeader>
             <CardTitle>Tendência Semanal</CardTitle>
