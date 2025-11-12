@@ -1,9 +1,11 @@
 package br.inatel.nutriPlan.controllers;
+
 import br.inatel.nutriPlan.services.DashboardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @CrossOrigin(origins = "*")
@@ -18,18 +20,19 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping("/calorias-por-dia")
-    public Map<LocalDate, Double> getCaloriasPorDia() {
-        return dashboardService.calcularCaloriasPorDia();
+    @GetMapping("/calorias-por-dia/{usuarioId}")
+    public Map<LocalDate, Double> getCaloriasPorDia(@PathVariable long usuarioId) {
+        return dashboardService.calcularCaloriasPorDia(usuarioId);
     }
 
-    @GetMapping("/macros-por-dia/{dia}")
-    public Map<String, Double> getMacrosPorDia(@PathVariable String dia) {
-        return dashboardService.calcularMacrosPorDia(LocalDate.parse(dia));
+    @GetMapping("/macros-por-dia/{usuarioId}/{dia}")
+    public Map<String, Double> getMacrosPorDia(@PathVariable long usuarioId, @PathVariable String dia) {
+        return dashboardService.calcularMacrosPorDia(usuarioId, LocalDate.parse(dia));
     }
 
-    @GetMapping("/relatorio-semanal")
-    public Map<String, Object> getRelatorioSemanal() {
-        return dashboardService.gerarRelatorioSemanal();
+    @GetMapping("/relatorio-semanal/{usuarioId}")
+    public List<Map<String, Object>> getRelatorioSemanal(@PathVariable long usuarioId) {
+        return dashboardService.gerarRelatorioSemanal(usuarioId);
     }
+
 }
