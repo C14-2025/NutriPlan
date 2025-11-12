@@ -1,18 +1,18 @@
 import { api } from "./api";
 
 export const dashboardApi = {
-    getCaloriasPorDia: async () => {
-        const response = await api.get("/dashboard/calorias-por-dia");
+    getCaloriasPorDia: async (usuarioId: number) => {
+        const response = await api.get(`/dashboard/calorias-por-dia/${usuarioId}`);
         return response.data;
     },
 
-    getMacrosPorDia: async (dia: string) => {
-        const response = await api.get(`/dashboard/macros-por-dia/${dia}`);
+    getMacrosPorDia: async (usuarioId: number, dia: string) => {
+        const response = await api.get(`/dashboard/macros-por-dia/${usuarioId}/${dia}`);
         return response.data;
     },
 
-    getRelatorioSemanal: async () => {
-        const response = await api.get("/dashboard/relatorio-semanal");
+    getRelatorioSemanal: async (usuarioId: number) => {
+        const response = await api.get(`/dashboard/relatorio-semanal/${usuarioId}`);
         return response.data;
     },
 };
