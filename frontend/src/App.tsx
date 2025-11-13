@@ -30,19 +30,26 @@ export interface FoodItem {
   fat: number;
 }
 
-export interface UserGoals {
-  sex: "male" | "female";
+interface UserGoals {
+  name: string;
   age: number;
+  weight: number;
+  height: number;
+  goal: string;
+  sex: string;
+  activityLevel: string;
   dailyCalories: number;
   dailyProtein: number;
   dailyCarbs: number;
   dailyFat: number;
-  weight: number;
-  height: number;
-  activityLevel: string;
 }
 
 function App() {
+
+  const handleUpdateGoals = (updatedGoals: UserGoals) => {
+    setUserGoals(updatedGoals);
+  };
+
   const [meals, setMeals] = useState<Meal[]>([
     {
       id: '1',
@@ -196,8 +203,9 @@ function App() {
 
           <TabsContent value="profile" className="mt-6">
             <UserProfile
-              userGoals={userGoals}
-              onUpdateGoals={setUserGoals}
+                userGoals={userGoals}
+                onUpdateGoals={handleUpdateGoals}
+                userId={1}
             />
           </TabsContent>
         </Tabs>
