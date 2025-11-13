@@ -37,21 +37,6 @@ public class DashboardServiceTest {
     }
 
     @Test
-    public void testCalcularCaloriasPorDia() {
-        Refeicao r1 = criarRefeicao(1L, LocalDateTime.of(2025, 1, 1, 12, 0));
-        Refeicao r2 = criarRefeicao(2L, LocalDateTime.of(2025, 1, 1, 18, 0));
-
-        when(refeicaoService.findByUsuarioId(userId)).thenReturn(List.of(r1, r2));
-        when(refeicaoService.calcularTotaisNutricionais(1L)).thenReturn(Map.of("Calorias", 500.0));
-        when(refeicaoService.calcularTotaisNutricionais(2L)).thenReturn(Map.of("Calorias", 300.0));
-
-        Map<LocalDate, Double> result = dashboardService.calcularCaloriasPorDia(userId);
-
-        assertEquals(800.0, result.get(LocalDate.of(2025, 1, 1)));
-        assertEquals(1, result.size());
-    }
-
-    @Test
     public void testCalcularMacrosPorDia() {
         LocalDate dia = LocalDate.of(2025, 1, 1);
         Refeicao r1 = criarRefeicao(1L, dia.atStartOfDay());

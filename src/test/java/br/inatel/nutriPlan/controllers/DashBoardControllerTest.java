@@ -29,16 +29,6 @@ class DashBoardControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 
-    @Test
-    void testGetCaloriasPorDia() throws Exception {
-        Map<LocalDate, Double> fakeResponse = Map.of(LocalDate.of(2025, 1, 1), 2000.0);
-
-        when(dashboardServiceMock.calcularCaloriasPorDia(userId)).thenReturn(fakeResponse);
-
-        mockMvc.perform(get("/dashboard/calorias-por-dia/{usuarioId}", userId))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"2025-01-01\":2000.0}"));
-    }
 
     @Test
     void testGetMacrosPorDia() throws Exception {

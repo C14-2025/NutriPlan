@@ -20,10 +20,6 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
-    @GetMapping("/calorias-por-dia/{usuarioId}")
-    public Map<LocalDate, Double> getCaloriasPorDia(@PathVariable long usuarioId) {
-        return dashboardService.calcularCaloriasPorDia(usuarioId);
-    }
 
     @GetMapping("/macros-por-dia/{usuarioId}/{dia}")
     public Map<String, Double> getMacrosPorDia(@PathVariable long usuarioId, @PathVariable String dia) {

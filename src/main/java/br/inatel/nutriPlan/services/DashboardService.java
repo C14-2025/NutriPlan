@@ -20,31 +20,6 @@ public class DashboardService {
         this.refeicaoService = refeicaoService;
     }
 
-    public Map<LocalDate, Double> calcularCaloriasPorDia(long usuarioId) {
-        List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId);
-        Map<LocalDate, Double> caloriasPorDia = new HashMap<>();
-
-        for (Refeicao refeicao : refeicoes) {
-            if (refeicao.getDataHora() == null) continue;
-
-            LocalDate dia = refeicao.getDataHora().toLocalDate();
-            Map<String, Double> totais = refeicaoService.calcularTotaisNutricionais(refeicao.getId());
-            double calorias = totais.getOrDefault("Calorias", 0.0);
-
-            caloriasPorDia.merge(dia, calorias, Double::sum);
-        }
-
-        return caloriasPorDia.entrySet()
-                .stream()
-                .sorted(Map.Entry.comparingByKey())
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (a, b) -> b,
-                        LinkedHashMap::new
-                ));
-    }
-
     public Map<String, Double> calcularMacrosPorDia(long usuarioId, LocalDate dia) {
         List<Refeicao> refeicoes = refeicaoService.findByUsuarioId(usuarioId)
                 .stream()
