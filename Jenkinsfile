@@ -27,7 +27,7 @@ pipeline {
 
         stage('Build & Test') {
             parallel {
-                stage('🧪 Tests') {
+                stage('Tests') {
                     steps {
                         echo 'Executando testes unitários...'
                         bat "mvn -B test -Dtest='!NutriPlanApplicationTests'"
@@ -40,7 +40,7 @@ pipeline {
                     }
                 }
 
-                stage('📦 Package') {
+                stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
                         bat 'mvn -B -DskipTests clean package'
@@ -52,7 +52,7 @@ pipeline {
                     }
                 }
 
-                stage('🧹 Lint / Code Quality') {
+                stage('Lint / Code Quality') {
                     steps {
                         echo 'Executando checagem de qualidade de código...'
                         // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
@@ -83,7 +83,7 @@ pipeline {
             echo 'Falha detectada no pipeline.'
         }
         always {
-            echo '📧 Enviando notificação de conclusão...'
+            echo 'Enviando notificação de conclusão...'
             emailext(
                 subject: "NutriPlan Pipeline - ${currentBuild.currentResult}",
                 body: """<p>Pipeline finalizada para o commit <b>${env.GIT_COMMIT}</b> na branch <b>${env.BRANCH_NAME}</b>.</p>
