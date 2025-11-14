@@ -4,6 +4,22 @@ describe('MealForm Component', () => {
     cy.contains('Adicionar Refeição').click(); 
   });
 
+  it("Possui campo de nome da refeição", () => {
+    cy.get("#meal-name").should("exist");
+  });
+
+  it("Possui campo de data", () => {
+      cy.get("#meal-date").should("exist");
+  });
+
+  it("Possui select de tipo de refeição", () => {
+      cy.contains("Tipo de Refeição").should("exist");
+  });
+
+  it("Possui botão de adicionar alimento", () => {
+      cy.contains("Adicionar Alimento").should("exist");
+  });
+
   it('deve renderizar os campos principais do formulário', () => {
     cy.get('input#meal-name').should('be.visible');
     cy.get('input#meal-date').should('be.visible');
@@ -14,6 +30,21 @@ describe('MealForm Component', () => {
   it('deve adicionar um novo campo de alimento ao clicar em "Adicionar Alimento"', () => {
     cy.contains('Adicionar Alimento').click();
     cy.contains('Alimento 2').should('exist');
+  });
+
+  it("Permite digitar quantidade", () => {
+    cy.get("input[placeholder='1']").first().type("2").should("have.value", "2");
+  });
+
+  it("Permite digitar calorias", () => {
+    cy.get("input[placeholder='0']").first().type("200").should("have.value", "200");
+  });
+
+  it("Impede salvar refeição sem nome", () => {
+    cy.get("button[type='submit']").click();
+    cy.on("window:alert", (str) => {
+      expect(str).to.equal("Por favor, preencha o nome da refeição e adicione pelo menos um alimento.");
+    });
   });
 
   it('deve preencher o formulário e adicionar uma refeição com sucesso', () => {
@@ -114,6 +145,16 @@ describe('MealForm Component', () => {
       } 
   });
 
-  
+  it("Reset do formulário após envio", () => {
+    cy.get("#meal-name").type("Teste Reset");
+
+    cy.contains("Selecionar Alimento Comum").click();
+    cy.contains("Arroz branco").click();
+    cy.get("input[placeholder='1']").clear().type("1");
+
+    cy.get("button[type='submit']").click();
+
+    cy.get("#meal-name").should("have.value", "");
+  });
 
 });

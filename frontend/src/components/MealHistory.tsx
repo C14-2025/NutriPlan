@@ -21,6 +21,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   const [dateFilter, setDateFilter] = useState('');
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [editFormData, setEditFormData] = useState<Omit<Meal, 'id'> | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   // Filter meals based on type and date
   const filteredMeals = meals.filter(meal => {
@@ -251,9 +252,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
                 {/* Actions */}
                 <div className="flex justify-end gap-2">
-                  <Dialog>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={() => handleEditMeal(meal)}>
+                      <Button variant="outline" size="sm" onClick={() => {handleEditMeal(meal); setIsDialogOpen(true);}}>
                         <Edit className="w-4 h-4 mr-2" />
                         Editar
                       </Button>
@@ -319,10 +320,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                           </div>
 
                           <div className="flex justify-end gap-2">
-                            <Button variant="outline" onClick={() => setEditingMeal(null)}>
+                            <Button variant="outline" onClick={() => {setEditingMeal(null); setEditFormData(null); setIsDialogOpen(false);}}>
                               Cancelar
                             </Button>
-                            <Button onClick={handleSaveEdit}>
+                            <Button onClick={ () =>{handleSaveEdit(); setIsDialogOpen(false);}}>
                               Salvar Alterações
                             </Button>
                           </div>
