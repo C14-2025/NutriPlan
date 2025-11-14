@@ -24,6 +24,7 @@ const commonFoods = [
   { name: 'Aveia', calories: 154, protein: 6, carbs: 28, fat: 3, unit: 'xícara' },
   { name: 'Leite integral', calories: 149, protein: 8, carbs: 12, fat: 8, unit: 'xícara' },
   { name: 'Pão integral', calories: 81, protein: 4, carbs: 14, fat: 1.1, unit: 'fatia' },
+  { name: 'Outro', calories: 0, protein: 0, carbs: 0, fat: 0, unit: '' }
 ];
 
 export function MealForm({ onAddMeal }: MealFormProps) {
