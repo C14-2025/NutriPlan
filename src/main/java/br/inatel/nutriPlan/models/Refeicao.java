@@ -16,6 +16,7 @@ public class Refeicao {
     private String tipo; // Café da manhã, Almoço, Jantar, Lanche
     private LocalDateTime dataHora;
 
+
     @ManyToOne
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
@@ -45,6 +46,7 @@ public class Refeicao {
 
     public LocalDateTime getDataHora() { return dataHora; }
     public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+
 
     public Usuario getUsuario() { return usuario; }
     public void setUsuario(Usuario usuario) { this.usuario = usuario; }
