@@ -430,7 +430,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                           </Dialog>
 
                           <Button variant="destructive" size="sm" onClick={() => handleDeleteMeal(meal.id)} disabled={deletingId === meal.id}>
-                            <Trash2 className="w-4 h-4 mr-2 text-red-500" />
+                            <Trash2 className="w-4 h-4 mr-2 text-white" />
                             {deletingId === meal.id ? 'Excluindo...' : 'Excluir'}
                           </Button>
                         </div>
