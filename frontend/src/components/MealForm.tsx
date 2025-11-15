@@ -15,20 +15,6 @@ interface MealFormProps {
   onSuccess?: () => void;
 }
 
-// Common foods database for quick selection
-const commonFoods = [
-  { name: "Arroz branco", calories: 130, protein: 2.7, carbs: 28, fat: 0.3, unit: "xícara" },
-  { name: "Arroz integral", calories: 108, protein: 2.5, carbs: 22, fat: 0.9, unit: "xícara" },
-  { name: "Feijão preto", calories: 227, protein: 15, carbs: 41, fat: 0.9, unit: "xícara" },
-  { name: "Peito de frango grelhado", calories: 154, protein: 29, carbs: 0, fat: 3.3, unit: "100g" },
-  { name: "Ovo inteiro", calories: 68, protein: 6, carbs: 0.4, fat: 4.8, unit: "unidade" },
-  { name: "Banana", calories: 105, protein: 1.3, carbs: 27, fat: 0.4, unit: "média" },
-  { name: "Maçã", calories: 95, protein: 0.5, carbs: 25, fat: 0.3, unit: "média" },
-  { name: "Aveia", calories: 154, protein: 6, carbs: 28, fat: 3, unit: "xícara" },
-  { name: "Leite integral", calories: 149, protein: 8, carbs: 12, fat: 8, unit: "xícara" },
-  { name: "Pão integral", calories: 81, protein: 4, carbs: 14, fat: 1.1, unit: "fatia" },
-];
-
 const commonFoods = [
   { name: "Arroz branco cozido", calories: 130, protein: 2.4, carbs: 28.2, fat: 0.3, unit: "100g" },
   { name: "Arroz integral cozido", calories: 112, protein: 2.3, carbs: 23.5, fat: 0.8, unit: "100g" },
