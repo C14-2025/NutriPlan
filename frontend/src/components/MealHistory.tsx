@@ -18,6 +18,13 @@ import { Calendar, Edit, Trash2, Filter } from 'lucide-react';
 import type { Meal, FoodItem } from '../App';
 import { refeicaoApi } from '../services/refeicaoApi';
 
+interface MealTotals {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
+
 interface MealHistoryProps {
   meals: Meal[];
   onUpdateMeal?: (id: string, meal: Omit<Meal, 'id'>) => void;
@@ -25,6 +32,7 @@ interface MealHistoryProps {
 }
 
 export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryProps) {
+  const [mealTotals, setMealTotals] = useState<Record<string, MealTotals>>({});
   const [filter, setFilter] = useState<'all' | 'breakfast' | 'lunch' | 'dinner' | 'snack'>('all');
   const [dateFilter, setDateFilter] = useState('');
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -32,7 +40,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // CORREÇÃO: Mapeamento consistente de tipos
   const tipoDisplay: Record<string, string> = {
     breakfast: 'Café da manhã',
     lunch: 'Almoço',
@@ -49,43 +56,68 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     'Almoço': 'LUNCH',
     'Jantar': 'DINNER',
     'Lanche': 'SNACK',
-    'breakfast': 'BREAKFAST',
-    'lunch': 'LUNCH',
-    'dinner': 'DINNER',
-    'snack': 'SNACK',
+    breakfast: 'BREAKFAST',
+    lunch: 'LUNCH',
+    dinner: 'DINNER',
+    snack: 'SNACK',
   };
 
   const frontendTipoMap: Record<string, string> = {
-    'BREAKFAST': 'breakfast',
-    'LUNCH': 'lunch',
-    'DINNER': 'dinner',
-    'SNACK': 'snack',
+    BREAKFAST: 'breakfast',
+    LUNCH: 'lunch',
+    DINNER: 'dinner',
+    SNACK: 'snack',
   };
 
   const getMealTypeLabel = (type: string) => {
-    const normalizedType = frontendTipoMap[type] || type;
-    return tipoDisplay[normalizedType] || type;
+    const normalized = frontendTipoMap[type] || type;
+    return tipoDisplay[normalized] || type;
   };
 
   const getMealTypeBadgeVariant = (type: string) => {
-    const normalizedType = frontendTipoMap[type] || type;
+    const normalized = frontendTipoMap[type] || type;
     const map: Record<string, string> = {
       breakfast: 'default',
       lunch: 'secondary',
       dinner: 'outline',
       snack: 'destructive',
     };
-    return (map[normalizedType] as never) || 'default';
+    return map[normalized] as any;
   };
+
+  useEffect(() => {
+    async function loadTotals() {
+      const newTotals: Record<string, MealTotals> = {};
+
+      for (const meal of meals) {
+        try {
+          const resp = await refeicaoApi.calcularTotais(Number(meal.id));
+          newTotals[meal.id] = {
+            calories: resp.data.calorias || 0,
+            protein: resp.data.proteinas || 0,
+            carbs: resp.data.carboidratos || 0,
+            fat: resp.data.gorduras || 0,
+          };
+        } catch (err) {
+          console.error("Erro ao carregar totais:", err);
+        }
+      }
+
+      setMealTotals(newTotals);
+    }
+
+    loadTotals();
+  }, [meals]);
+
 
   const filteredMeals = useMemo(() => {
     return meals.filter((meal) => {
-      // CORREÇÃO: Normalizar tipo para comparação
-      const mealTypeNormalized = frontendTipoMap[meal.mealType] || meal.mealType;
-      const filterNormalized = filter === 'all' ? filter : frontendTipoMap[filter] || filter;
+      const normalizedType = frontendTipoMap[meal.mealType] || meal.mealType;
+      const filterNormalized = filter === 'all' ? filter : filter;
 
-      const typeMatch = filter === 'all' || mealTypeNormalized === filterNormalized;
+      const typeMatch = filter === 'all' || normalizedType === filterNormalized;
       const dateMatch = !dateFilter || meal.date === dateFilter;
+
       return typeMatch && dateMatch;
     });
   }, [meals, filter, dateFilter]);
@@ -95,40 +127,28 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
       if (a.date !== b.date) {
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
-      const mealOrder: Record<string, number> = {
+      const order: Record<string, number> = {
+        breakfast: 0, lunch: 1, dinner: 2, snack: 3,
         BREAKFAST: 0, LUNCH: 1, DINNER: 2, SNACK: 3,
-        breakfast: 0, lunch: 1, dinner: 2, snack: 3
       };
-      const ai = mealOrder[a.mealType] ?? 4;
-      const bi = mealOrder[b.mealType] ?? 4;
-      return ai - bi;
+      return (order[a.mealType] ?? 4) - (order[b.mealType] ?? 4);
     });
   }, [filteredMeals]);
 
   const groupByDate = (list: Meal[]) => {
     const grouped: Record<string, Meal[]> = {};
     list.forEach((m) => {
-      const key = m.date;
-      if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(m);
+      if (!grouped[m.date]) grouped[m.date] = [];
+      grouped[m.date].push(m);
     });
     return grouped;
   };
 
   const groupedMeals = useMemo(() => groupByDate(sortedMeals), [sortedMeals]);
 
-  // CORREÇÃO: Função para obter data atual no formato YYYY-MM-DD considerando fuso horário
-  const getTodayDateString = () => {
-    const now = new Date();
-    // Ajusta para o fuso horário de Brasília (UTC-3)
-    const offset = -3 * 60; // UTC-3 em minutos
-    const localDate = new Date(now.getTime() + offset * 60 * 1000);
-    return localDate.toISOString().split('T')[0];
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString + 'T00:00:00-03:00'); // Força fuso horário Brasil
-    return date.toLocaleDateString('pt-BR', {
+  const formatDate = (date: string) => {
+    const d = new Date(date + "T00:00:00-03:00");
+    return d.toLocaleDateString('pt-BR', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -136,9 +156,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     });
   };
 
-  const isToday = (dateString: string) => {
-    const today = getTodayDateString();
-    return dateString === today;
+  const isToday = (date: string) => {
+    const today = new Date().toISOString().split("T")[0];
+    return today === date;
   };
 
   const calculateTotalsFromFoodItems = (items: FoodItem[]) => {
@@ -158,16 +178,13 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
   const handleEditMeal = (meal: Meal) => {
     setEditingMeal(meal);
-    const clonedFoodItems = meal.foodItems.map((f) => ({ ...f }));
-    const totals = calculateTotalsFromFoodItems(clonedFoodItems);
-
-    // CORREÇÃO: Mapeamento correto do tipo para o formulário
-    const mealTypeForForm = frontendTipoMap[meal.mealType] || meal.mealType;
+    const cloned = meal.foodItems.map((f) => ({ ...f }));
+    const totals = calculateTotalsFromFoodItems(cloned);
 
     setEditFormData({
-      mealType: mealTypeForForm,
+      mealType: frontendTipoMap[meal.mealType] || meal.mealType,
       date: meal.date,
-      foodItems: clonedFoodItems,
+      foodItems: cloned,
       totalCalories: totals.calories,
       totalProtein: totals.protein,
       totalCarbs: totals.carbs,
@@ -180,15 +197,18 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     setEditFormData({ ...editFormData, [field]: value });
   };
 
-  const updateFoodItem = (foodId: string, field: keyof FoodItem, value: string | number) => {
+  const updateFoodItem = (foodId: string, field: keyof FoodItem, value: any) => {
     if (!editFormData) return;
-    const updatedFoodItems = editFormData.foodItems.map((item) =>
+
+    const updated = editFormData.foodItems.map((item) =>
         item.id === foodId ? { ...item, [field]: value } : item
     );
-    const totals = calculateTotalsFromFoodItems(updatedFoodItems);
+
+    const totals = calculateTotalsFromFoodItems(updated);
+
     setEditFormData({
       ...editFormData,
-      foodItems: updatedFoodItems,
+      foodItems: updated,
       totalCalories: totals.calories,
       totalProtein: totals.protein,
       totalCarbs: totals.carbs,
@@ -196,31 +216,22 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     });
   };
 
-  // CORREÇÃO: Implementação completa da atualização
   const handleSaveEdit = async () => {
     if (!editingMeal || !editFormData) return;
     setSaving(true);
+
     try {
-      // 1. Atualizar metadados da refeição
-      const payload = {
-        tipo: reverseTipoMap[editFormData.mealType] || editFormData.mealType,
+      await refeicaoApi.atualizar(Number(editingMeal.id), {
+        tipo: reverseTipoMap[editFormData.mealType],
         data: editFormData.date,
-      };
+      });
 
-      await refeicaoApi.atualizar(Number(editingMeal.id), payload);
-
-      // 2. Atualizar alimentos da refeição
-      // Primeiro, remover todos os alimentos atuais
       const alimentosAtuais = await refeicaoApi.listarAlimentos(Number(editingMeal.id));
       for (const alimento of alimentosAtuais.data) {
         await refeicaoApi.removerAlimento(Number(editingMeal.id), alimento.id);
       }
 
-      // Adicionar os novos alimentos com quantidades
       for (const food of editFormData.foodItems) {
-        // Aqui precisaríamos do ID real do alimento no backend
-        // Como não temos, vamos assumir que food.id é o ID do alimento
-        // Em um cenário real, você precisaria buscar ou criar o alimento primeiro
         if (food.id && !isNaN(Number(food.id))) {
           await refeicaoApi.adicionarAlimento(
               Number(editingMeal.id),
@@ -230,45 +241,39 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
         }
       }
 
-      // 3. Atualizar estado local
       onUpdateMeal?.(editingMeal.id, {
         ...editFormData,
-        mealType: reverseTipoMap[editFormData.mealType] || editFormData.mealType,
+        mealType: reverseTipoMap[editFormData.mealType],
       });
 
       setEditingMeal(null);
       setEditFormData(null);
     } catch (err) {
-      console.error('Erro ao salvar edição:', err);
-      alert('Erro ao salvar edição.');
+      console.error(err);
+      alert("Erro ao salvar edição.");
     } finally {
       setSaving(false);
     }
   };
 
   const handleDeleteMeal = async (mealId: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta refeição?')) return;
+    if (!confirm("Deseja realmente excluir?")) return;
+
     setDeletingId(mealId);
+
     try {
       await refeicaoApi.deletar(Number(mealId));
       onDeleteMeal?.(mealId);
     } catch (err) {
-      console.error('Erro ao excluir:', err);
-      alert('Erro ao excluir refeição.');
+      console.error(err);
     } finally {
       setDeletingId(null);
     }
   };
 
-  const formatGroupHeader = (dateString: string) => {
-    const d = new Date(dateString + 'T00:00:00-03:00'); // Força fuso horário Brasil
-    const short = d.toLocaleDateString('pt-BR');
-    const label = isToday(dateString) ? 'Hoje' : '';
-    return label ? `${label} — ${short}` : short;
-  };
-
   return (
       <div className="space-y-6">
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -281,11 +286,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
               <div>
                 <Label>Tipo de Refeição</Label>
                 <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as refeições</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     <SelectItem value="breakfast">Café da manhã</SelectItem>
                     <SelectItem value="lunch">Almoço</SelectItem>
                     <SelectItem value="dinner">Jantar</SelectItem>
@@ -293,66 +296,67 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                   </SelectContent>
                 </Select>
               </div>
+
               <div>
                 <Label>Data</Label>
-                <Input
-                    type="date"
-                    value={dateFilter}
-                    onChange={(e) => setDateFilter(e.target.value)}
-                />
+                <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
-          {Object.keys(groupedMeals).length === 0 && (
-              <Card>
-                <CardContent className="text-center py-8">
-                  <p className="text-muted-foreground">Nenhuma refeição encontrada com os filtros aplicados.</p>
-                </CardContent>
-              </Card>
-          )}
+        {Object.keys(groupedMeals).length === 0 && (
+            <Card>
+              <CardContent className="text-center py-8">
+                <p className="text-muted-foreground">Nenhuma refeição encontrada.</p>
+              </CardContent>
+            </Card>
+        )}
 
-          {Object.entries(groupedMeals).map(([dateKey, group]) => (
-              <div key={dateKey} className="space-y-3">
-                <h3 className="text-sm font-semibold">{formatGroupHeader(dateKey)}</h3>
+        {Object.entries(groupedMeals).map(([dateKey, group]) => (
+            <div key={dateKey} className="space-y-3">
+              <h3 className="text-sm font-semibold">{formatDate(dateKey)}</h3>
 
-                {group.map((meal) => (
+              {group.map((meal) => {
+                const totals = mealTotals[meal.id] ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
+
+                return (
                     <Card key={meal.id}>
                       <CardHeader>
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 w-full">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <Badge variant={getMealTypeBadgeVariant(meal.mealType) as any}>
+                            <Badge variant={getMealTypeBadgeVariant(meal.mealType)}>
                               {getMealTypeLabel(meal.mealType)}
                             </Badge>
+
                             {isToday(meal.date) && <Badge variant="outline">Hoje</Badge>}
                           </div>
 
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm text-muted-foreground">{formatDate(meal.date)}</span>
-                            {meal.time && <span className="ml-2 text-sm text-muted-foreground">{meal.time}</span>}
+                            <span>{formatDate(meal.date)}</span>
                           </div>
                         </div>
                       </CardHeader>
 
                       <CardContent className="space-y-4">
+
+                        {/* -------------------- TOTAIS (AGORA DA API!!) -------------------- */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
                           <div className="text-center">
-                            <div className="text-xl">{Math.round(meal.totalCalories)}</div>
+                            <div className="text-xl">{Math.round(totals.calories)}</div>
                             <div className="text-sm text-muted-foreground">Calorias</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xl">{Math.round(meal.totalProtein)}g</div>
+                            <div className="text-xl">{Math.round(totals.protein)}g</div>
                             <div className="text-sm text-muted-foreground">Proteína</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xl">{Math.round(meal.totalCarbs)}g</div>
+                            <div className="text-xl">{Math.round(totals.carbs)}g</div>
                             <div className="text-sm text-muted-foreground">Carboidratos</div>
                           </div>
                           <div className="text-center">
-                            <div className="text-xl">{Math.round(meal.totalFat)}g</div>
+                            <div className="text-xl">{Math.round(totals.fat)}g</div>
                             <div className="text-sm text-muted-foreground">Gordura</div>
                           </div>
                         </div>
@@ -361,10 +365,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                           <h4 className="mb-2">Alimentos:</h4>
                           <div className="space-y-2">
                             {meal.foodItems.map((food) => (
-                                <div key={food.id} className="flex justify-between items-center p-2 bg-background rounded border">
+                                <div key={food.id} className="flex justify-between p-2 border rounded">
                                   <span>{food.name}</span>
                                   <span className="text-sm text-muted-foreground">
-                            {food.quantity}g ({Math.round((food.calories / 100) * (food.quantity || 0))} kcal)
+                            {food.quantity}g ({Math.round((food.calories / 100) * food.quantity)} kcal)
                           </span>
                                 </div>
                             ))}
@@ -372,7 +376,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                         </div>
 
                         <Separator />
-
+                        
                         <div className="flex justify-end gap-2">
                           <Dialog>
                             <DialogTrigger asChild>
@@ -385,10 +389,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>Editar Refeição</DialogTitle>
-                                <DialogDescription>Faça alterações na refeição e clique em salvar.</DialogDescription>
+                                <DialogDescription>Altere os dados e salve.</DialogDescription>
                               </DialogHeader>
 
-                              {editFormData && editingMeal && (
+                              {editFormData && editingMeal?.id === meal.id && (
                                   <div className="space-y-4">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div>
@@ -397,9 +401,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                             value={editFormData.mealType}
                                             onValueChange={(v: any) => updateEditFormData('mealType', v)}
                                         >
-                                          <SelectTrigger>
-                                            <SelectValue />
-                                          </SelectTrigger>
+                                          <SelectTrigger><SelectValue /></SelectTrigger>
                                           <SelectContent>
                                             <SelectItem value="breakfast">Café da manhã</SelectItem>
                                             <SelectItem value="lunch">Almoço</SelectItem>
@@ -423,52 +425,37 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                       <Label>Alimentos</Label>
                                       <div className="space-y-2 mt-2">
                                         {editFormData.foodItems.map((food) => (
-                                            <div key={food.id} className="grid grid-cols-2 md:grid-cols-4 gap-2 p-2 border rounded">
+                                            <div key={food.id} className="grid grid-cols-3 gap-2 p-2 border rounded">
                                               <Input
                                                   value={food.name}
                                                   onChange={(e) => updateFoodItem(food.id, 'name', e.target.value)}
-                                                  placeholder="Nome"
                                               />
                                               <Input
                                                   type="number"
                                                   value={food.quantity}
-                                                  onChange={(e) => updateFoodItem(food.id, 'quantity', Number(e.target.value))}
-                                                  placeholder="Qtd (g)"
+                                                  onChange={(e) =>
+                                                      updateFoodItem(food.id, 'quantity', Number(e.target.value))
+                                                  }
                                               />
                                               <Input
                                                   type="number"
                                                   value={food.calories}
-                                                  onChange={(e) => updateFoodItem(food.id, 'calories', Number(e.target.value))}
-                                                  placeholder="Cal (100g)"
+                                                  onChange={(e) =>
+                                                      updateFoodItem(food.id, 'calories', Number(e.target.value))
+                                                  }
                                               />
                                             </div>
                                         ))}
                                       </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded">
-                                      <div className="text-center">
-                                        <div className="text-xl">{Math.round(editFormData.totalCalories)}</div>
-                                        <div className="text-sm text-muted-foreground">Calorias</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-xl">{Math.round(editFormData.totalProtein)}g</div>
-                                        <div className="text-sm text-muted-foreground">Proteína</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-xl">{Math.round(editFormData.totalCarbs)}g</div>
-                                        <div className="text-sm text-muted-foreground">Carboidratos</div>
-                                      </div>
-                                      <div className="text-center">
-                                        <div className="text-xl">{Math.round(editFormData.totalFat)}g</div>
-                                        <div className="text-sm text-muted-foreground">Gordura</div>
-                                      </div>
-                                    </div>
-
                                     <div className="flex justify-end gap-2">
                                       <Button
                                           variant="outline"
-                                          onClick={() => { setEditingMeal(null); setEditFormData(null); }}
+                                          onClick={() => {
+                                            setEditingMeal(null);
+                                            setEditFormData(null);
+                                          }}
                                       >
                                         Cancelar
                                       </Button>
@@ -487,16 +474,16 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                               onClick={() => handleDeleteMeal(meal.id)}
                               disabled={deletingId === meal.id}
                           >
-                            <Trash2 className="w-4 h-4 mr-2 text-white" />
+                            <Trash2 className="w-4 h-4 mr-2" />
                             {deletingId === meal.id ? 'Excluindo...' : 'Excluir'}
                           </Button>
                         </div>
                       </CardContent>
                     </Card>
-                ))}
-              </div>
-          ))}
-        </div>
+                );
+              })}
+            </div>
+        ))}
       </div>
   );
 }
