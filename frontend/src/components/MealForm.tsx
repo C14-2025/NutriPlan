@@ -241,7 +241,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
                     </div>
 
                     <div className="w-full">
-                      <Label className="mb-2 block">Quantidade</Label>
+                      <Label className="mb-2 block">Quantidade (g)</Label>
                       <Input
                           type="number"
                           value={item.quantity || ""}
