@@ -1,3 +1,4 @@
+// MealHistory.tsx - Versão corrigida para usar meal.name
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -26,66 +27,38 @@ interface MealTotals {
 }
 
 interface MealHistoryProps {
-  meals: Meal[];
+  meals: Meal[]; // Assumindo que Meal agora tem um campo 'name' em vez de 'mealType'
   onUpdateMeal?: (id: string, meal: Omit<Meal, 'id'>) => void;
   onDeleteMeal?: (id: string) => void;
 }
 
 export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryProps) {
   const [mealTotals, setMealTotals] = useState<Record<string, MealTotals>>({});
-  const [filter, setFilter] = useState<'all' | 'breakfast' | 'lunch' | 'dinner' | 'snack'>('all');
+  // Ajustando o tipo de filter para usar os valores de 'name'
+  const [filter, setFilter] = useState<'all' | 'Café da manhã' | 'Almoço' | 'Jantar' | 'Lanche'>('all');
   const [dateFilter, setDateFilter] = useState('');
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
   const [editFormData, setEditFormData] = useState<Omit<Meal, 'id'> | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const tipoDisplay: Record<string, string> = {
-    breakfast: 'Café da manhã',
-    lunch: 'Almoço',
-    dinner: 'Jantar',
-    snack: 'Lanche',
-    BREAKFAST: 'Café da manhã',
-    LUNCH: 'Almoço',
-    DINNER: 'Jantar',
-    SNACK: 'Lanche',
-  };
-
-  const reverseTipoMap: Record<string, string> = {
-    'Café da manhã': 'BREAKFAST',
-    'Almoço': 'LUNCH',
-    'Jantar': 'DINNER',
-    'Lanche': 'SNACK',
-    breakfast: 'BREAKFAST',
-    lunch: 'LUNCH',
-    dinner: 'DINNER',
-    snack: 'SNACK',
-  };
-
-  const frontendTipoMap: Record<string, string> = {
-    BREAKFAST: 'breakfast',
-    LUNCH: 'lunch',
-    DINNER: 'dinner',
-    SNACK: 'snack',
-  };
 
   const getMealTypeLabel = (type: string) => {
-    const normalized = frontendTipoMap[type] || type;
-    return tipoDisplay[normalized] || type;
+    return type; 
   };
 
   const getMealTypeBadgeVariant = (type: string) => {
-    const normalized = frontendTipoMap[type] || type;
     const map: Record<string, string> = {
-      breakfast: 'default',
-      lunch: 'secondary',
-      dinner: 'outline',
-      snack: 'destructive',
+      'Café da manhã': 'default',
+      'Almoço': 'secondary',
+      'Jantar': 'outline',
+      'Lanche': 'destructive',
     };
-    return map[normalized] as any;
+    return map[type] as any;
   };
 
   useEffect(() => {
+    console.log("Carregando totais para meals:", meals); // Log de depuração
     async function loadTotals() {
       const newTotals: Record<string, MealTotals> = {};
 
@@ -109,13 +82,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     loadTotals();
   }, [meals]);
 
-
   const filteredMeals = useMemo(() => {
     return meals.filter((meal) => {
-      const normalizedType = frontendTipoMap[meal.mealType] || meal.mealType;
-      const filterNormalized = filter === 'all' ? filter : filter;
-
-      const typeMatch = filter === 'all' || normalizedType === filterNormalized;
+      // O filtro selecionado deve corresponder ao campo 'name' da refeição
+      const typeMatch = filter === 'all' || meal.name === filter; // <-- Usando meal.name
       const dateMatch = !dateFilter || meal.date === dateFilter;
 
       return typeMatch && dateMatch;
@@ -128,10 +98,15 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
         return new Date(b.date).getTime() - new Date(a.date).getTime();
       }
       const order: Record<string, number> = {
+        'Café da manhã': 0,
+        'Almoço': 1,
+        'Jantar': 2,
+        'Lanche': 3,
         breakfast: 0, lunch: 1, dinner: 2, snack: 3,
         BREAKFAST: 0, LUNCH: 1, DINNER: 2, SNACK: 3,
       };
-      return (order[a.mealType] ?? 4) - (order[b.mealType] ?? 4);
+      // Usa meal.name para determinar a ordem
+      return (order[a.name] ?? 4) - (order[b.name] ?? 4); // <-- Usando a.name e b.name
     });
   }, [filteredMeals]);
 
@@ -181,8 +156,16 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     const cloned = meal.foodItems.map((f) => ({ ...f }));
     const totals = calculateTotalsFromFoodItems(cloned);
 
+    const reverseMapForEdit: Record<string, string> = {
+      'Café da manhã': 'breakfast',
+      'Almoço': 'lunch',
+      'Jantar': 'dinner',
+      'Lanche': 'snack',
+    };
+    const frontendType = reverseMapForEdit[meal.name] || meal.name; // <-- Usando meal.name
+
     setEditFormData({
-      mealType: frontendTipoMap[meal.mealType] || meal.mealType,
+      mealType: frontendType,
       date: meal.date,
       foodItems: cloned,
       totalCalories: totals.calories,
@@ -216,17 +199,28 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     });
   };
 
+
   const handleSaveEdit = async () => {
     if (!editingMeal || !editFormData) return;
     setSaving(true);
 
     try {
+      const frontendToBackendTipoMap: Record<string, string> = {
+        breakfast: 'Café da manhã',
+        lunch: 'Almoço',
+        dinner: 'Jantar',
+        snack: 'Lanche',
+      };
+      const backendTipo = frontendToBackendTipoMap[editFormData.mealType] || editFormData.mealType;
+
       await refeicaoApi.atualizar(Number(editingMeal.id), {
-        tipo: reverseTipoMap[editFormData.mealType],
+        tipo: backendTipo, // Envia o tipo em português
         data: editFormData.date,
       });
 
+      // Obter alimentos atuais da refeição
       const alimentosAtuais = await refeicaoApi.listarAlimentos(Number(editingMeal.id));
+      // Remover todos os alimentos atuais
       for (const alimento of alimentosAtuais.data) {
         await refeicaoApi.removerAlimento(Number(editingMeal.id), alimento.id);
       }
@@ -241,10 +235,13 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
         }
       }
 
-      onUpdateMeal?.(editingMeal.id, {
+
+      const updatedMealForState: Omit<Meal, 'id'> = {
         ...editFormData,
-        mealType: reverseTipoMap[editFormData.mealType],
-      });
+        name: backendTipo,
+      };
+
+      onUpdateMeal?.(editingMeal.id, updatedMealForState);
 
       setEditingMeal(null);
       setEditFormData(null);
@@ -289,10 +286,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="breakfast">Café da manhã</SelectItem>
-                    <SelectItem value="lunch">Almoço</SelectItem>
-                    <SelectItem value="dinner">Jantar</SelectItem>
-                    <SelectItem value="snack">Lanche</SelectItem>
+                    <SelectItem value="Café da manhã">Café da manhã</SelectItem>
+                    <SelectItem value="Almoço">Almoço</SelectItem>
+                    <SelectItem value="Jantar">Jantar</SelectItem>
+                    <SelectItem value="Lanche">Lanche</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -325,8 +322,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                       <CardHeader>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <Badge variant={getMealTypeBadgeVariant(meal.mealType)}>
-                              {getMealTypeLabel(meal.mealType)}
+                            {/* Agora usa meal.name para o Badge e o Label */}
+                            <Badge variant={getMealTypeBadgeVariant(meal.name)}>
+                              {getMealTypeLabel(meal.name)}
                             </Badge>
 
                             {isToday(meal.date) && <Badge variant="outline">Hoje</Badge>}
@@ -341,7 +339,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
                       <CardContent className="space-y-4">
 
-                        {/* -------------------- TOTAIS (AGORA DA API!!) -------------------- */}
+                        {/* TOTAIS (AGORA DA API!!) */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
                           <div className="text-center">
                             <div className="text-xl">{Math.round(totals.calories)}</div>
@@ -376,7 +374,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                         </div>
 
                         <Separator />
-                        
+
                         <div className="flex justify-end gap-2">
                           <Dialog>
                             <DialogTrigger asChild>
