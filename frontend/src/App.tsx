@@ -30,7 +30,7 @@ export interface FoodItem {
   fat: number;
 }
 
-interface UserGoals {
+export interface UserGoals {
   name?: string;
   age: number;
   weight: number;
