@@ -11,21 +11,20 @@ import { refeicaoApi } from "../services/refeicaoApi";
 import { alimentoApi } from "../services/alimentoApi";
 
 interface MealFormProps {
-  // chamado quando a refeição for salva com sucesso (para recarregar lista)
   onSuccess?: () => void;
 }
 
 const commonFoods = [
-  { name: "Arroz branco cozido", calories: 130, protein: 2.4, carbs: 28.2, fat: 0.3, unit: "100g" },
-  { name: "Arroz integral cozido", calories: 112, protein: 2.3, carbs: 23.5, fat: 0.8, unit: "100g" },
-  { name: "Feijão preto cozido", calories: 132, protein: 8.9, carbs: 23.7, fat: 0.5, unit: "100g" },
-  { name: "Peito de frango grelhado", calories: 165, protein: 31, carbs: 0, fat: 3.6, unit: "100g" },
-  { name: "Ovo inteiro", calories: 143, protein: 13, carbs: 1.1, fat: 9.5, unit: "100g" },
-  { name: "Banana", calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3, unit: "100g" },
-  { name: "Maçã", calories: 52, protein: 0.3, carbs: 14, fat: 0.2, unit: "100g" },
-  { name: "Aveia", calories: 389, protein: 17, carbs: 66, fat: 7, unit: "100g" },
-  { name: "Leite integral", calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3, unit: "100g" },
-  { name: "Pão integral", calories: 247, protein: 13, carbs: 41, fat: 4.2, unit: "100g" },
+  { name: "Arroz branco cozido", calories: 130, protein: 2.4, carbs: 28.2, fat: 0.3},
+  { name: "Arroz integral cozido", calories: 112, protein: 2.3, carbs: 23.5, fat: 0.8},
+  { name: "Feijão preto cozido", calories: 132, protein: 8.9, carbs: 23.7, fat: 0.5},
+  { name: "Peito de frango grelhado", calories: 165, protein: 31, carbs: 0, fat: 3.6},
+  { name: "Ovo inteiro", calories: 143, protein: 13, carbs: 1.1, fat: 9.5},
+  { name: "Banana", calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3},
+  { name: "Maçã", calories: 52, protein: 0.3, carbs: 14, fat: 0.2},
+  { name: "Aveia", calories: 389, protein: 17, carbs: 66, fat: 7},
+  { name: "Leite integral", calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3},
+  { name: "Pão integral", calories: 247, protein: 13, carbs: 41, fat: 4.2},
 ];
 
 
@@ -39,7 +38,6 @@ export function MealForm({ onSuccess }: MealFormProps) {
       id: "1",
       name: "",
       quantity: 0,
-      unit: "",
       calories: 0,
       protein: 0,
       carbs: 0,
@@ -55,7 +53,6 @@ export function MealForm({ onSuccess }: MealFormProps) {
         id: newId,
         name: "",
         quantity: 0,
-        unit: "",
         calories: 0,
         protein: 0,
         carbs: 0,
