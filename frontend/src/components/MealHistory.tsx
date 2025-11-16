@@ -1,15 +1,8 @@
-// MealHistory.tsx - Versão corrigida e ajustada (ATUALIZADO: edição NÃO altera alimentos)
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Badge } from './ui/badge';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
+import {Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,} from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
@@ -17,17 +10,27 @@ import { Separator } from './ui/separator';
 import { Calendar, Edit, Trash2, Filter } from 'lucide-react';
 import type { Meal, FoodItem } from '../App';
 import { refeicaoApi } from '../services/refeicaoApi';
-
-interface MealTotals {
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-}
+import { alimentoApi } from '../services/alimentoApi';
 
 interface AlimentoQuantidadeDto {
   alimentoId: number;
   quantidade: number;
+}
+
+interface AlimentoDetalhe {
+  id: number;
+  nome: string;
+  calorias: number;
+  proteinas: number;
+  carboidratos: number;
+  gorduras: number;
+}
+
+interface ExtendedMeal extends Omit<Meal, 'foodItems'> { // Meal com foodItems como objeto detalhado
+  foodItems: {
+    alimento: AlimentoDetalhe;
+    quantidade: number;
+  }[];
 }
 
 interface MealHistoryProps {
@@ -37,14 +40,14 @@ interface MealHistoryProps {
 }
 
 export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryProps) {
-  const [mealTotals, setMealTotals] = useState<Record<string, MealTotals>>({});
+  const [extendedMeals, setExtendedMeals] = useState<ExtendedMeal[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'Café da manhã' | 'Almoço' | 'Jantar' | 'Lanche'>('all');
   const [dateFilter, setDateFilter] = useState('');
-  const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
-  const [editFormData, setEditFormData] = useState<Omit<Meal, 'id'> | null>(null);
+  const [editingMeal, setEditingMeal] = useState<ExtendedMeal | null>(null);
+  const [editFormData, setEditFormData] = useState<Omit<ExtendedMeal, 'id'> | null>(null);
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
   const [openDialogId, setOpenDialogId] = useState<string | null>(null);
 
   const getMealTypeLabel = (type: string) => type;
@@ -60,33 +63,87 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   };
 
   useEffect(() => {
-    async function loadTotals() {
-      const newTotals: Record<string, MealTotals> = {};
-      for (const meal of meals) {
-        try {
-          const resp = await refeicaoApi.calcularTotais(Number(meal.id));
-          newTotals[meal.id] = {
-            calories: resp.data.calorias || 0,
-            protein: resp.data.proteinas || 0,
-            carbs: resp.data.carboidratos || 0,
-            fat: resp.data.gorduras || 0,
-          };
-        } catch (err) {
-          console.error("Erro ao carregar totais:", err);
-        }
+    const loadExtendedMeals = async () => {
+      setLoading(true);
+      try {
+        const allAlimentosResponse = await alimentoApi.listar();
+        const allAlimentosMap = new Map<number, AlimentoDetalhe>();
+        allAlimentosResponse.data.forEach((a: any) => {
+          allAlimentosMap.set(a.id, {
+            id: a.id,
+            nome: a.nome || a.name || 'Nome não encontrado',
+            calorias: a.calorias || 0,
+            proteinas: a.proteinas || 0,
+            carboidratos: a.carboidratos || 0,
+            gorduras: a.gorduras || 0,
+          });
+        });
+
+        const extendedMealsData = await Promise.all(
+            meals.map(async (meal) => {
+              const alimentosResponse = await refeicaoApi.listarAlimentos(Number(meal.id));
+              const alimentosQuantidade: AlimentoQuantidadeDto[] = alimentosResponse.data || [];
+              const foodItemsDetalhados = alimentosQuantidade
+                  .map((aq) => {
+                    const alimentoDetalhe = allAlimentosMap.get(aq.alimentoId);
+                    if (alimentoDetalhe) {
+                      return {
+                        alimento: alimentoDetalhe,
+                        quantidade: aq.quantidade,
+                      };
+                    }
+                    console.error(`Alimento com ID ${aq.alimentoId} não encontrado no mapa.`);
+                    return null;
+                  })
+                  .filter((item): item is NonNullable<typeof item> => item !== null); // Filtra itens inválidos
+
+              const totals = foodItemsDetalhados.reduce(
+                  (acc, item) => {
+                    const qty = item.quantidade;
+                    const factor = qty / 100; // Fator para converter de 100g para quantidade real
+                    return {
+                      calories: acc.calories + item.alimento.calorias * factor,
+                      protein: acc.protein + item.alimento.proteinas * factor,
+                      carbs: acc.carbs + item.alimento.carboidratos * factor,
+                      fat: acc.fat + item.alimento.gorduras * factor,
+                    };
+                  },
+                  { calories: 0, protein: 0, carbs: 0, fat: 0 }
+              );
+              return {
+                ...meal,
+                foodItems: foodItemsDetalhados,
+                totalCalories: totals.calories,
+                totalProtein: totals.protein,
+                totalCarbs: totals.carbs,
+                totalFat: totals.fat,
+              };
+            })
+        );
+
+        setExtendedMeals(extendedMealsData);
+      } catch (err) {
+        console.error("Erro ao carregar dados detalhados das refeições:", err);
+      } finally {
+        setLoading(false);
       }
-      setMealTotals(newTotals);
+    };
+
+    if (meals.length > 0) {
+      loadExtendedMeals();
+    } else {
+      setExtendedMeals([]);
+      setLoading(false);
     }
-    loadTotals();
   }, [meals]);
 
   const filteredMeals = useMemo(() => {
-    return meals.filter((meal) => {
+    return extendedMeals.filter((meal) => {
       const typeMatch = filter === 'all' || meal.name === filter;
       const dateMatch = !dateFilter || meal.date === dateFilter;
       return typeMatch && dateMatch;
     });
-  }, [meals, filter, dateFilter]);
+  }, [extendedMeals, filter, dateFilter]);
 
   const sortedMeals = useMemo(() => {
     return [...filteredMeals].sort((a, b) => {
@@ -105,8 +162,8 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     });
   }, [filteredMeals]);
 
-  const groupByDate = (list: Meal[]) => {
-    const grouped: Record<string, Meal[]> = {};
+  const groupByDate = (list: ExtendedMeal[]) => {
+    const grouped: Record<string, ExtendedMeal[]> = {};
     list.forEach((m) => {
       if (!grouped[m.date]) grouped[m.date] = [];
       grouped[m.date].push(m);
@@ -131,29 +188,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     return today === date;
   };
 
-  const calculateTotalsFromFoodItems = (items: FoodItem[]) => {
-    return items.reduce(
-        (acc, item) => {
-          const qty = item.quantity || 0;
-          return {
-            calories: acc.calories + (item.calories / 100) * qty,
-            protein: acc.protein + (item.protein / 100) * qty,
-            carbs: acc.carbs + (item.carbs / 100) * qty,
-            fat: acc.fat + (item.fat / 100) * qty,
-          };
-        },
-        { calories: 0, protein: 0, carbs: 0, fat: 0 }
-    );
-  };
-
-  const handleEditMeal = async (meal: Meal) => {
-    // Usar os foodItems já presentes no meal (não reconstruir a partir de IDs)
+  const handleEditMeal = async (meal: ExtendedMeal) => {
     setEditingMeal(meal);
     try {
-      // Montar editFormData com os dados existentes da meal (mantendo alimentos)
-      const totals = calculateTotalsFromFoodItems(meal.foodItems || []);
-
-      // map mealType -> frontend enum (se necessário)
       const reverseMapForEdit: Record<string, string> = {
         'Café da manhã': 'breakfast',
         'Almoço': 'lunch',
@@ -165,11 +202,11 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
       setEditFormData({
         mealType: frontendType as any,
         date: meal.date,
-        foodItems: meal.foodItems || [],
-        totalCalories: totals.calories,
-        totalProtein: totals.protein,
-        totalCarbs: totals.carbs,
-        totalFat: totals.fat,
+        foodItems: meal.foodItems,
+        totalCalories: meal.totalCalories,
+        totalProtein: meal.totalProtein,
+        totalCarbs: meal.totalCarbs,
+        totalFat: meal.totalFat,
         name: meal.name,
         usuario: meal.usuario,
       });
@@ -180,26 +217,9 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     }
   };
 
-  const updateEditFormData = (field: keyof Omit<Meal, 'id'>, value: any) => {
+  const updateEditFormData = (field: keyof Omit<ExtendedMeal, 'id'>, value: any) => {
     if (!editFormData) return;
     setEditFormData({ ...editFormData, [field]: value });
-  };
-
-  // Mantém função para recalcular ao ajustar quantidades localmente (não utilizada para update backend)
-  const updateFoodItem = (id: string, field: keyof FoodItem, value: any) => {
-    if (!editFormData) return;
-    const updated = editFormData.foodItems.map((item) =>
-        item.id === id ? { ...item, [field]: value } : item
-    );
-    const totals = calculateTotalsFromFoodItems(updated);
-    setEditFormData({
-      ...editFormData,
-      foodItems: updated,
-      totalCalories: totals.calories,
-      totalProtein: totals.protein,
-      totalCarbs: totals.carbs,
-      totalFat: totals.fat,
-    });
   };
 
   const handleSaveEdit = async () => {
@@ -226,14 +246,23 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
       };
 
       await refeicaoApi.atualizar(Number(editingMeal.id), refeicaoPayload);
+      const convertedFoodItems: FoodItem[] = editingMeal.foodItems.map(item => ({
+        id: item.alimento.id.toString(),
+        name: item.alimento.nome,
+        quantity: item.quantidade,
+        calories: item.alimento.calorias,
+        protein: item.alimento.proteinas,
+        carbs: item.alimento.carboidratos,
+        fat: item.alimento.gorduras,
+      }));
 
       const updatedMealForState: Omit<Meal, "id"> = {
         name: backendTipo,
-        foodItems: editingMeal.foodItems || [], // mantém alimentos originais
-        totalCalories: editFormData.totalCalories ?? mealTotals[editingMeal.id]?.calories ?? 0,
-        totalProtein: editFormData.totalProtein ?? mealTotals[editingMeal.id]?.protein ?? 0,
-        totalCarbs: editFormData.totalCarbs ?? mealTotals[editingMeal.id]?.carbs ?? 0,
-        totalFat: editFormData.totalFat ?? mealTotals[editingMeal.id]?.fat ?? 0,
+        foodItems: convertedFoodItems,
+        totalCalories: editingMeal.totalCalories,
+        totalProtein: editingMeal.totalProtein,
+        totalCarbs: editingMeal.totalCarbs,
+        totalFat: editingMeal.totalFat,
         date: editFormData.date,
         mealType: editFormData.mealType as any,
         usuario: editingMeal.usuario || { id: usuarioId },
@@ -264,6 +293,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
       setDeletingId(null);
     }
   };
+
+  if (loading) {
+    return <div>Carregando refeições...</div>;
+  }
 
   return (
       <div className="space-y-6">
@@ -309,7 +342,12 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
               <h3 className="text-sm font-semibold">{formatDate(dateKey)}</h3>
 
               {group.map((meal) => {
-                const totals = mealTotals[meal.id] ?? { calories: 0, protein: 0, carbs: 0, fat: 0 };
+                const totals = {
+                  calories: meal.totalCalories,
+                  protein: meal.totalProtein,
+                  carbs: meal.totalCarbs,
+                  fat: meal.totalFat,
+                };
 
                 return (
                     <Card key={meal.id}>
@@ -351,14 +389,19 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                         <div>
                           <h4 className="mb-2">Alimentos:</h4>
                           <div className="space-y-2">
-                            {meal.foodItems.map((food) => (
-                                <div key={food.id} className="flex justify-between p-2 border rounded">
-                                  <span>{food.name}</span>
-                                  <span className="text-sm text-muted-foreground">
-                            {food.quantity}g ({Math.round((food.calories / 100) * food.quantity)} kcal)
-                          </span>
-                                </div>
-                            ))}
+                            {meal.foodItems.map((item, index) => {
+                              const { alimento, quantidade } = item;
+                              const factor = quantidade / 100;
+                              const caloriasCalculadas = alimento.calorias * factor;
+                              return (
+                                  <div key={`${alimento.id}-${index}`} className="flex justify-between p-2 border rounded">
+                                    <span>{alimento.nome} ({quantidade}g)</span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {Math.round(caloriasCalculadas)} kcal
+                                      </span>
+                                  </div>
+                              );
+                            })}
                           </div>
                         </div>
 
@@ -381,7 +424,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                               open={openDialogId === meal.id}
                               onOpenChange={(open) => {
                                 if (!open) {
-                                  // ao fechar, limpa edição
                                   setOpenDialogId(null);
                                   setEditingMeal(null);
                                   setEditFormData(null);
@@ -398,7 +440,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
                               {editFormData && editingMeal?.id === meal.id && (
                                   <div className="space-y-4">
-                                    <div className="space-y-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                       <div>
                                         <Label>Tipo</Label>
                                         <Select
@@ -414,22 +456,19 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                           </SelectContent>
                                         </Select>
                                       </div>
-
-
                                     </div>
 
                                     <div>
                                       <h4 className="mb-2">Alimentos (somente leitura)</h4>
                                       <div className="space-y-2">
-                                        {editFormData.foodItems.map((food) => (
-                                            <div key={food.id} className="flex gap-2 items-center">
+                                        {editFormData.foodItems.map((item, idx) => (
+                                            <div key={`${item.alimento.id}-${idx}`} className="flex gap-2 items-center">
                                               <div className="flex-1">
-                                                <div className="font-medium">{food.name}</div>
+                                                <div className="font-medium">{item.alimento.nome}</div>
                                                 <div className="text-sm text-muted-foreground">
-                                                  {(food.calories ? Math.round((food.calories / 100) * (food.quantity || 0)) : 0)} kcal
+                                                  {item.quantidade}g ({Math.round(item.alimento.calorias * (item.quantidade / 100))} kcal)
                                                 </div>
                                               </div>
-                                              {/* quantidade removida do formulário editável — mantida somente leitura */}
                                             </div>
                                         ))}
                                       </div>
