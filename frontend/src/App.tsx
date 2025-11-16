@@ -18,6 +18,9 @@ export interface Meal {
   totalFat: number;
   date: string;
   mealType: "breakfast" | "lunch" | "dinner" | "snack";
+  usuario: {
+    id: number;
+  };
 }
 
 export interface FoodItem {
