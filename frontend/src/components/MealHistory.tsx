@@ -1,4 +1,4 @@
-// MealHistory.tsx - Versão corrigida para usar meal.name
+// MealHistory.tsx - Versão corrigida e ajustada
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -9,7 +9,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from './ui/dialog';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -26,15 +25,19 @@ interface MealTotals {
   fat: number;
 }
 
+interface AlimentoQuantidadeDto {
+  alimentoId: number;
+  quantidade: number;
+}
+
 interface MealHistoryProps {
-  meals: Meal[]; // Assumindo que Meal agora tem um campo 'name' em vez de 'mealType'
+  meals: Meal[];
   onUpdateMeal?: (id: string, meal: Omit<Meal, 'id'>) => void;
   onDeleteMeal?: (id: string) => void;
 }
 
 export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryProps) {
   const [mealTotals, setMealTotals] = useState<Record<string, MealTotals>>({});
-  // Ajustando o tipo de filter para usar os valores de 'name'
   const [filter, setFilter] = useState<'all' | 'Café da manhã' | 'Almoço' | 'Jantar' | 'Lanche'>('all');
   const [dateFilter, setDateFilter] = useState('');
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -42,10 +45,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Estado para controlar qual dialog/modal está aberto (por meal.id)
+  const [openDialogId, setOpenDialogId] = useState<string | null>(null);
 
-  const getMealTypeLabel = (type: string) => {
-    return type; 
-  };
+  const getMealTypeLabel = (type: string) => type;
 
   const getMealTypeBadgeVariant = (type: string) => {
     const map: Record<string, string> = {
@@ -58,10 +61,8 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   };
 
   useEffect(() => {
-    console.log("Carregando totais para meals:", meals); // Log de depuração
     async function loadTotals() {
       const newTotals: Record<string, MealTotals> = {};
-
       for (const meal of meals) {
         try {
           const resp = await refeicaoApi.calcularTotais(Number(meal.id));
@@ -75,19 +76,15 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
           console.error("Erro ao carregar totais:", err);
         }
       }
-
       setMealTotals(newTotals);
     }
-
     loadTotals();
   }, [meals]);
 
   const filteredMeals = useMemo(() => {
     return meals.filter((meal) => {
-      // O filtro selecionado deve corresponder ao campo 'name' da refeição
-      const typeMatch = filter === 'all' || meal.name === filter; // <-- Usando meal.name
+      const typeMatch = filter === 'all' || meal.name === filter;
       const dateMatch = !dateFilter || meal.date === dateFilter;
-
       return typeMatch && dateMatch;
     });
   }, [meals, filter, dateFilter]);
@@ -105,8 +102,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
         breakfast: 0, lunch: 1, dinner: 2, snack: 3,
         BREAKFAST: 0, LUNCH: 1, DINNER: 2, SNACK: 3,
       };
-      // Usa meal.name para determinar a ordem
-      return (order[a.name] ?? 4) - (order[b.name] ?? 4); // <-- Usando a.name e b.name
+      return (order[a.name] ?? 4) - (order[b.name] ?? 4);
     });
   }, [filteredMeals]);
 
@@ -151,28 +147,55 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     );
   };
 
-  const handleEditMeal = (meal: Meal) => {
+  const handleEditMeal = async (meal: Meal) => {
+    // carregar dados da refeição e popular editFormData
     setEditingMeal(meal);
-    const cloned = meal.foodItems.map((f) => ({ ...f }));
-    const totals = calculateTotalsFromFoodItems(cloned);
+    try {
+      const alimentosRes = await refeicaoApi.listarAlimentos(Number(meal.id));
+      if (!Array.isArray(alimentosRes.data)) {
+        console.error("Erro: Formato inesperado de listarAlimentos");
+        alert("Erro ao carregar alimentos. Formato de dados inesperado.");
+        setEditingMeal(null);
+        setEditFormData(null);
+        return;
+      }
 
-    const reverseMapForEdit: Record<string, string> = {
-      'Café da manhã': 'breakfast',
-      'Almoço': 'lunch',
-      'Jantar': 'dinner',
-      'Lanche': 'snack',
-    };
-    const frontendType = reverseMapForEdit[meal.name] || meal.name; // <-- Usando meal.name
+      const alimentosQuantidade: AlimentoQuantidadeDto[] = alimentosRes.data;
+      const alimentosDetalhados: FoodItem[] = alimentosQuantidade.map(aq => ({
+        id: String(aq.alimentoId),
+        name: `Alimento ${aq.alimentoId}`,
+        calories: 0,
+        protein: 0,
+        carbs: 0,
+        fat: 0,
+        quantity: aq.quantidade
+      }));
 
-    setEditFormData({
-      mealType: frontendType,
-      date: meal.date,
-      foodItems: cloned,
-      totalCalories: totals.calories,
-      totalProtein: totals.protein,
-      totalCarbs: totals.carbs,
-      totalFat: totals.fat,
-    });
+      const totals = calculateTotalsFromFoodItems(alimentosDetalhados);
+
+      const reverseMapForEdit: Record<string, string> = {
+        'Café da manhã': 'breakfast',
+        'Almoço': 'lunch',
+        'Jantar': 'dinner',
+        'Lanche': 'snack',
+      };
+      const frontendType = reverseMapForEdit[meal.name] || meal.name;
+
+      setEditFormData({
+        mealType: frontendType,
+        date: meal.date,
+        foodItems: alimentosDetalhados,
+        totalCalories: totals.calories,
+        totalProtein: totals.protein,
+        totalCarbs: totals.carbs,
+        totalFat: totals.fat,
+      });
+    } catch (err) {
+      console.error("Erro ao carregar alimentos para edição:", err);
+      alert("Erro ao carregar alimentos para edição.");
+      setEditingMeal(null);
+      setEditFormData(null);
+    }
   };
 
   const updateEditFormData = (field: keyof Omit<Meal, 'id'>, value: any) => {
@@ -180,15 +203,12 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     setEditFormData({ ...editFormData, [field]: value });
   };
 
-  const updateFoodItem = (foodId: string, field: keyof FoodItem, value: any) => {
+  const updateFoodItem = (id: string, field: keyof FoodItem, value: any) => {
     if (!editFormData) return;
-
     const updated = editFormData.foodItems.map((item) =>
-        item.id === foodId ? { ...item, [field]: value } : item
+        item.id === id ? { ...item, [field]: value } : item
     );
-
     const totals = calculateTotalsFromFoodItems(updated);
-
     setEditFormData({
       ...editFormData,
       foodItems: updated,
@@ -199,55 +219,67 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     });
   };
 
-
   const handleSaveEdit = async () => {
-    if (!editingMeal || !editFormData) return;
-    setSaving(true);
+    if (!editingMeal || !editFormData || !editingMeal.id) {
+      alert("Erro: Dados de edição inválidos.");
+      return;
+    }
 
+    setSaving(true);
     try {
       const frontendToBackendTipoMap: Record<string, string> = {
-        breakfast: 'Café da manhã',
-        lunch: 'Almoço',
-        dinner: 'Jantar',
-        snack: 'Lanche',
+        breakfast: "Café da manhã",
+        lunch: "Almoço",
+        dinner: "Jantar",
+        snack: "Lanche",
       };
+
       const backendTipo = frontendToBackendTipoMap[editFormData.mealType] || editFormData.mealType;
+      const usuarioId = Number(localStorage.getItem("usuarioId")) || 1;
 
-      await refeicaoApi.atualizar(Number(editingMeal.id), {
-        tipo: backendTipo, // Envia o tipo em português
+      const refeicaoPayload = {
+        tipo: backendTipo,
+        usuario: { id: usuarioId },
         data: editFormData.date,
-      });
+      };
 
-      // Obter alimentos atuais da refeição
-      const alimentosAtuais = await refeicaoApi.listarAlimentos(Number(editingMeal.id));
-      // Remover todos os alimentos atuais
-      for (const alimento of alimentosAtuais.data) {
-        await refeicaoApi.removerAlimento(Number(editingMeal.id), alimento.id);
+      // Atualiza refeição existente
+      await refeicaoApi.atualizar(Number(editingMeal.id), refeicaoPayload);
+
+      // Remove alimentos antigos
+      const alimentosAtuaisRes = await refeicaoApi.listarAlimentos(Number(editingMeal.id));
+      const alimentosAtuais: AlimentoQuantidadeDto[] = alimentosAtuaisRes.data || [];
+
+      for (const alimento of alimentosAtuais) {
+        await refeicaoApi.removerAlimento(Number(editingMeal.id), alimento.alimentoId);
       }
 
+      // Adiciona alimentos novos
       for (const food of editFormData.foodItems) {
-        if (food.id && !isNaN(Number(food.id))) {
+        if (food.quantity > 0) {
           await refeicaoApi.adicionarAlimento(
               Number(editingMeal.id),
               Number(food.id),
-              food.quantity || 0
+              food.quantity
           );
         }
       }
 
-
-      const updatedMealForState: Omit<Meal, 'id'> = {
+      // Atualiza estado no frontend
+      const updatedMealForState: Omit<Meal, "id"> = {
         ...editFormData,
         name: backendTipo,
       };
 
       onUpdateMeal?.(editingMeal.id, updatedMealForState);
 
+      // Fecha modal e limpa estado de edição
+      setOpenDialogId(null);
       setEditingMeal(null);
       setEditFormData(null);
     } catch (err) {
-      console.error(err);
-      alert("Erro ao salvar edição.");
+      console.error("Erro ao salvar edição:", err);
+      alert("Erro ao salvar edição. Veja o console.");
     } finally {
       setSaving(false);
     }
@@ -255,9 +287,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
   const handleDeleteMeal = async (mealId: string) => {
     if (!confirm("Deseja realmente excluir?")) return;
-
     setDeletingId(mealId);
-
     try {
       await refeicaoApi.deletar(Number(mealId));
       onDeleteMeal?.(mealId);
@@ -270,12 +300,10 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
   return (
       <div className="space-y-6">
-
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Filter className="w-5 h-5" />
-              Filtros
+              <Filter className="w-5 h-5" /> Filtros
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -293,7 +321,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                   </SelectContent>
                 </Select>
               </div>
-
               <div>
                 <Label>Data</Label>
                 <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
@@ -322,14 +349,11 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                       <CardHeader>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            {/* Agora usa meal.name para o Badge e o Label */}
                             <Badge variant={getMealTypeBadgeVariant(meal.name)}>
                               {getMealTypeLabel(meal.name)}
                             </Badge>
-
                             {isToday(meal.date) && <Badge variant="outline">Hoje</Badge>}
                           </div>
-
                           <div className="flex items-center gap-2">
                             <Calendar className="w-4 h-4 text-muted-foreground" />
                             <span>{formatDate(meal.date)}</span>
@@ -338,8 +362,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                       </CardHeader>
 
                       <CardContent className="space-y-4">
-
-                        {/* TOTAIS (AGORA DA API!!) */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted rounded-lg">
                           <div className="text-center">
                             <div className="text-xl">{Math.round(totals.calories)}</div>
@@ -376,18 +398,37 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                         <Separator />
 
                         <div className="flex justify-end gap-2">
-                          <Dialog>
-                            <DialogTrigger asChild>
-                              <Button variant="outline" size="sm" onClick={() => handleEditMeal(meal)}>
-                                <Edit className="w-4 h-4 mr-2 text-amber-500" />
-                                Editar
-                              </Button>
-                            </DialogTrigger>
+                          {/* Botão que prepara os dados e abre o modal */}
+                          <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={async () => {
+                                await handleEditMeal(meal); // busca alimentos e popula editFormData
+                                setOpenDialogId(meal.id);
+                              }}
+                          >
+                            <Edit className="w-4 h-4 mr-2 text-amber-500" />
+                            Editar
+                          </Button>
 
+                          {/* Modal controlado */}
+                          <Dialog
+                              open={openDialogId === meal.id}
+                              onOpenChange={(open) => {
+                                if (!open) {
+                                  // ao fechar, limpa edição
+                                  setOpenDialogId(null);
+                                  setEditingMeal(null);
+                                  setEditFormData(null);
+                                }
+                              }}
+                          >
                             <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
                               <DialogHeader>
                                 <DialogTitle>Editar Refeição</DialogTitle>
-                                <DialogDescription>Altere os dados e salve.</DialogDescription>
+                                <DialogDescription>
+                                  Altere os dados da refeição e clique em Salvar Alterações.
+                                </DialogDescription>
                               </DialogHeader>
 
                               {editFormData && editingMeal?.id === meal.id && (
@@ -420,28 +461,24 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                     </div>
 
                                     <div>
-                                      <Label>Alimentos</Label>
-                                      <div className="space-y-2 mt-2">
+                                      <h4 className="mb-2">Alimentos</h4>
+                                      <div className="space-y-2">
                                         {editFormData.foodItems.map((food) => (
-                                            <div key={food.id} className="grid grid-cols-3 gap-2 p-2 border rounded">
-                                              <Input
-                                                  value={food.name}
-                                                  onChange={(e) => updateFoodItem(food.id, 'name', e.target.value)}
-                                              />
-                                              <Input
-                                                  type="number"
-                                                  value={food.quantity}
-                                                  onChange={(e) =>
-                                                      updateFoodItem(food.id, 'quantity', Number(e.target.value))
-                                                  }
-                                              />
-                                              <Input
-                                                  type="number"
-                                                  value={food.calories}
-                                                  onChange={(e) =>
-                                                      updateFoodItem(food.id, 'calories', Number(e.target.value))
-                                                  }
-                                              />
+                                            <div key={food.id} className="flex gap-2 items-center">
+                                              <div className="flex-1">
+                                                <div className="font-medium">{food.name}</div>
+                                                <div className="text-sm text-muted-foreground">
+                                                  {(food.calories ? Math.round((food.calories / 100) * (food.quantity || 0)) : 0)} kcal
+                                                </div>
+                                              </div>
+                                              <div className="w-36">
+                                                <Label>Quantidade (g)</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={String(food.quantity || 0)}
+                                                    onChange={(e) => updateFoodItem(food.id, 'quantity', Number(e.target.value))}
+                                                />
+                                              </div>
                                             </div>
                                         ))}
                                       </div>
@@ -451,6 +488,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                       <Button
                                           variant="outline"
                                           onClick={() => {
+                                            setOpenDialogId(null);
                                             setEditingMeal(null);
                                             setEditFormData(null);
                                           }}
