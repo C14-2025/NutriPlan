@@ -43,12 +43,10 @@ export function MealForm({ onSuccess }: MealFormProps) {
     fat: 0,
   });
 
-
   const calculateTotals = (items: FoodItem[]) => {
     return items.reduce(
         (acc, item) => {
           const qty = item.quantity || 0;
-
           return {
             calories: acc.calories + (item.calories / 100) * qty,
             protein: acc.protein + (item.protein / 100) * qty,
@@ -63,8 +61,6 @@ export function MealForm({ onSuccess }: MealFormProps) {
   useEffect(() => {
     setTotals(calculateTotals(foodItems));
   }, [foodItems]);
-
-
 
   const addFoodItem = () => {
     const newId = (foodItems.length + 1).toString();
@@ -115,6 +111,11 @@ export function MealForm({ onSuccess }: MealFormProps) {
     e.preventDefault();
 
     const validFoodItems = foodItems.filter((item) => item.name && item.quantity > 0);
+
+    if (validFoodItems.length === 0) {
+      alert("Adicione pelo menos um alimento antes de salvar a refeição!");
+      return;
+    }
 
     setLoading(true);
     try {
@@ -205,7 +206,12 @@ export function MealForm({ onSuccess }: MealFormProps) {
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">Alimento {index + 1}</CardTitle>
                     {foodItems.length > 1 && (
-                        <Button type="button" onClick={() => removeFoodItem(item.id)} variant="outline" size="sm">
+                        <Button
+                            type="button"
+                            onClick={() => removeFoodItem(item.id)}
+                            variant="outline"
+                            size="sm"
+                        >
                           <Trash2 className="w-4 h-4" />
                         </Button>
                     )}
