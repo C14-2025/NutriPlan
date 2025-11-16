@@ -357,12 +357,18 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                             <Badge variant={getMealTypeBadgeVariant(meal.name)}>
                               {getMealTypeLabel(meal.name)}
                             </Badge>
-                            {isToday(meal.date) && <Badge variant="outline">Hoje</Badge>}
+                            {isToday(meal.date) ? (
+                                <Badge variant="outline">Hoje</Badge>
+                            ) : (
+                                <span className="text-sm text-muted-foreground">{formatDate(meal.date)}</span>
+                            )}
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-muted-foreground" />
-                            <span>{formatDate(meal.date)}</span>
-                          </div>
+                          {!isToday(meal.date) && (
+                              <div className="flex items-center gap-2">
+                                <Calendar className="w-4 h-4 text-muted-foreground" />
+                                <span>{formatDate(meal.date)}</span>
+                              </div>
+                          )}
                         </div>
                       </CardHeader>
 
@@ -440,7 +446,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
                               {editFormData && editingMeal?.id === meal.id && (
                                   <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
                                       <div>
                                         <Label>Tipo</Label>
                                         <Select
