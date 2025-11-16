@@ -12,7 +12,7 @@ import { getUsuario, updateUsuario, type UsuarioPayload } from '../services/usua
 interface UserProfileProps {
   userGoals: UserGoals;
   onUpdateGoals: (goals: UserGoals) => void;
-  userId: number; // 🔥 ADICIONE ESTA PROP
+  userId: number;
 }
 
 export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfileProps) {
@@ -20,7 +20,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
   const [isEditing, setIsEditing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  // 🔥 CARREGAR DADOS DO BACK-END AO INICIAR
   useEffect(() => {
     const loadUserData = async () => {
       if (!userId) return;
@@ -29,7 +28,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
         setIsLoading(true);
         const userData = await getUsuario(userId);
 
-        // 🔥 MAPEAR DADOS DO BACK-END PARA UserGoals
         setFormData(prev => ({
           ...prev,
           name: userData.nome || '',
@@ -56,11 +54,11 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
   // 🔥 FUNÇÃO PARA MAPEAR UserGoals PARA UsuarioPayload
   const mapToBackendPayload = (): UsuarioPayload => {
     return {
-      nome: formData.name || '', // 🔥 ajuste conforme sua estrutura real
+      nome: formData.name || '',
       idade: formData.age,
       peso: formData.weight,
       altura: formData.height,
-      objetivo: formData.goal || '' // 🔥 ajuste conforme sua estrutura real
+      objetivo: formData.goal || ''
     };
   };
 
@@ -113,7 +111,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
     }));
   };
 
-  // 🔥 CORRIGIR A FUNÇÃO handleSave
   const handleSave = async () => {
     if (!userId) {
       alert("ID do usuário não encontrado!");
@@ -124,7 +121,7 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
       setIsLoading(true);
       const payloadParaBackend = mapToBackendPayload();
 
-      console.log("Enviando para back-end:", payloadParaBackend); // 🔥 DEBUG
+      console.log("Enviando para back-end:", payloadParaBackend);
 
       const updatedUser = await updateUsuario(userId, payloadParaBackend);
 
@@ -133,7 +130,7 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
       setIsEditing(false);
 
       alert("Perfil atualizado com sucesso!");
-      console.log("Resposta do back-end:", updatedUser); // 🔥 DEBUG
+      console.log("Resposta do back-end:", updatedUser);
 
     } catch (error: any) {
       console.error("Erro ao salvar perfil:", error);
@@ -181,7 +178,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
 
   return (
       <div className="space-y-6">
-        {/* Profile Overview */}
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
@@ -200,9 +196,8 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
           </CardHeader>
 
           <CardContent className="space-y-4">
-            {/* 🔥 ADICIONAR CAMPO NOME */}
             <div>
-              <Label>Nome</Label>
+              <Label className="mb-2">Nome</Label>
               <Input
                   type="text"
                   value={formData.name || ''}
@@ -212,10 +207,9 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               />
             </div>
 
-            {/* SEX & AGE */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Sexo</Label>
+                <Label className="mb-2">Sexo</Label>
                 <Select
                     value={formData.sex}
                     onValueChange={(value: string) => updateFormData('sex', value)}
@@ -232,7 +226,7 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
 
               <div>
-                <Label>Idade</Label>
+                <Label className="mb-2">Idade</Label>
                 <Input
                     type="number"
                     value={formData.age}
@@ -242,10 +236,9 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
             </div>
 
-            {/* WEIGHT & HEIGHT */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Peso (kg)</Label>
+                <Label className="mb-2">Peso (kg)</Label>
                 <Input
                     type="number"
                     value={formData.weight}
@@ -255,7 +248,7 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
 
               <div>
-                <Label>Altura (cm)</Label>
+                <Label className="mb-2">Altura (cm)</Label>
                 <Input
                     type="number"
                     value={formData.height}
@@ -265,9 +258,8 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
             </div>
 
-            {/* 🔥 ADICIONAR CAMPO OBJETIVO */}
             <div>
-              <Label>Objetivo</Label>
+              <Label className="mb-2">Objetivo</Label>
               <Select
                   value={formData.goal}
                   onValueChange={(value: string) => updateFormData('goal', value)}
@@ -285,9 +277,8 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </Select>
             </div>
 
-            {/* ACTIVITY LEVEL */}
             <div>
-              <Label>Nível de Atividade</Label>
+              <Label className="mb-2">Nível de Atividade</Label>
               <Select
                   value={formData.activityLevel}
                   onValueChange={(value: string) => updateFormData('activityLevel', value)}
@@ -325,7 +316,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
           </CardContent>
         </Card>
 
-        {/* ... (restante do código permanece igual) */}
       </div>
   );
 }

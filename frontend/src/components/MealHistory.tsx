@@ -309,7 +309,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Tipo de Refeição</Label>
+                <Label className="mb-2">Tipo de Refeição</Label>
                 <Select value={filter} onValueChange={(v: any) => setFilter(v)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -322,7 +322,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                 </Select>
               </div>
               <div>
-                <Label>Data</Label>
+                <Label className="mb-2">Data</Label>
                 <Input type="date" value={dateFilter} onChange={(e) => setDateFilter(e.target.value)} />
               </div>
             </div>
@@ -448,7 +448,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                   <div className="space-y-4">
                                     <div className="space-y-4">
                                       <div>
-                                        <Label>Tipo</Label>
+                                        <Label className="mb-2">Tipo</Label>
                                         <Select
                                             value={editFormData.mealType}
                                             onValueChange={(v: any) => updateEditFormData('mealType', v)}
