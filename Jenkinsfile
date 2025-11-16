@@ -7,6 +7,14 @@ pipeline {
 
     options {
         timestamps()
+        disableConcurrentBuilds()
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+    }
+
+    environment {
+        MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
+        ARTIFACT_DIR = 'target'
+        REPORTS_DIR = 'target/surefire-reports'
     }
 
     stages {
@@ -17,14 +25,18 @@ pipeline {
             }
         }
 
-        stage('Parallel Jobs') {
+        stage('Build & Test') {
             parallel {
                 stage('Tests') {
                     steps {
-                        echo 'Executando testes...'
-                        bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
-                        junit 'target\\surefire-reports\\**\\*.xml'
-                        archiveArtifacts artifacts: 'target\\surefire-reports\\**\\*', fingerprint: true
+                        echo 'Executando testes unitários...'
+                        bat "mvn -B test -Dtest='!NutriPlanApplicationTests'"
+                    }
+                    post {
+                        always {
+                            junit "${REPORTS_DIR}/**/*.xml"
+                            archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
+                        }
                     }
                 }
 
@@ -32,31 +44,53 @@ pipeline {
                     steps {
                         echo 'Gerando pacote...'
                         bat 'mvn -B -DskipTests clean package'
-                        archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
+                    }
+                    post {
+                        success {
+                            archiveArtifacts artifacts: "${ARTIFACT_DIR}/*.jar", fingerprint: true
+                        }
                     }
                 }
 
-                stage('Lint Check') {
+                stage('Lint / Code Quality') {
                     steps {
-                        echo 'Verificando estrutura...'
+                        echo 'Executando checagem de qualidade de código...'
+                        // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
+                        // bat 'mvn checkstyle:check'
                         bat 'dir'
                     }
                 }
             }
         }
+
+        stage('Deploy (opcional)') {
+            when {
+                branch 'main'
+            }
+            steps {
+                echo 'Implantando versão em ambiente de testes...'
+                // Exemplo:
+                // bat 'scp target/*.jar user@server:/apps/nutriplan/'
+            }
+        }
     }
 
     post {
+        success {
+            echo 'Build concluída com sucesso!'
+        }
+        failure {
+            echo 'Falha detectada no pipeline.'
+        }
         always {
             echo 'Enviando notificação de conclusão...'
             emailext(
                 subject: "NutriPlan Pipeline - ${currentBuild.currentResult}",
-                body: """Pipeline finalizada para o commit ${env.GIT_COMMIT} na branch ${env.BRANCH_NAME}.
-                
-                Resultado da build: ${currentBuild.currentResult}
-
-                Verifique os logs no Jenkins para mais detalhes.""",
-                to: "batistanatp@gmail.com"
+                body: """<p>Pipeline finalizada para o commit <b>${env.GIT_COMMIT}</b> na branch <b>${env.BRANCH_NAME}</b>.</p>
+                         <p>Resultado da build: <b>${currentBuild.currentResult}</b></p>
+                         <p><a href="${env.BUILD_URL}">Ver detalhes no Jenkins</a></p>""",
+                mimeType: 'text/html',
+                to: 'srsilveira03@gmail.com'
             )
         }
     }
