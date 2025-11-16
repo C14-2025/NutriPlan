@@ -23,7 +23,6 @@ const commonFoods = [
   { name: "Banana", calories: 89, protein: 1.1, carbs: 22.8, fat: 0.3 },
   { name: "Maçã", calories: 52, protein: 0.3, carbs: 14, fat: 0.2 },
   { name: "Aveia", calories: 389, protein: 17, carbs: 66, fat: 7 },
-  { name: "Leite integral", calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
   { name: "Pão integral", calories: 247, protein: 13, carbs: 41, fat: 4.2 },
 ];
 
