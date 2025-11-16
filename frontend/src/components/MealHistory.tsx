@@ -398,7 +398,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
                               {editFormData && editingMeal?.id === meal.id && (
                                   <div className="space-y-4">
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-4">
                                       <div>
                                         <Label>Tipo</Label>
                                         <Select
