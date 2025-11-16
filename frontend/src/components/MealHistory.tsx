@@ -26,7 +26,7 @@ interface AlimentoDetalhe {
   gorduras: number;
 }
 
-interface ExtendedMeal extends Omit<Meal, 'foodItems'> { // Meal com foodItems como objeto detalhado
+interface ExtendedMeal extends Omit<Meal, 'foodItems'> {
   foodItems: {
     alimento: AlimentoDetalhe;
     quantidade: number;
@@ -52,14 +52,14 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
 
   const getMealTypeLabel = (type: string) => type;
 
-  const getMealTypeBadgeVariant = (type: string) => {
+  const getMealTypeBadgeClassName = (type: string) => {
     const map: Record<string, string> = {
-      'Café da manhã': 'default',
-      'Almoço': 'secondary',
-      'Jantar': 'outline',
-      'Lanche': 'destructive',
+      'Café da manhã': 'bg-blue-50 text-blue-800 border-blue-100',
+      'Almoço': 'bg-green-50 text-green-800 border-green-100',
+      'Jantar': 'bg-indigo-50 text-indigo-800 border-indigo-100',
+      'Lanche': 'bg-amber-50 text-amber-800 border-amber-100',
     };
-    return map[type] as any;
+    return map[type] || 'bg-gray-50 text-gray-700 border-gray-200';
   };
 
   useEffect(() => {
@@ -95,12 +95,12 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                     console.error(`Alimento com ID ${aq.alimentoId} não encontrado no mapa.`);
                     return null;
                   })
-                  .filter((item): item is NonNullable<typeof item> => item !== null); // Filtra itens inválidos
+                  .filter((item): item is NonNullable<typeof item> => item !== null);
 
               const totals = foodItemsDetalhados.reduce(
                   (acc, item) => {
                     const qty = item.quantidade;
-                    const factor = qty / 100; // Fator para converter de 100g para quantidade real
+                    const factor = qty / 100;
                     return {
                       calories: acc.calories + item.alimento.calorias * factor,
                       protein: acc.protein + item.alimento.proteinas * factor,
@@ -354,7 +354,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                       <CardHeader>
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                           <div className="flex items-center gap-3">
-                            <Badge variant={getMealTypeBadgeVariant(meal.name)}>
+                            <Badge className={getMealTypeBadgeClassName(meal.name)}>
                               {getMealTypeLabel(meal.name)}
                             </Badge>
                             {isToday(meal.date) ? (
