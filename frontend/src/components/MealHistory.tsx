@@ -1,4 +1,4 @@
-// MealHistory.tsx - Versão corrigida e ajustada
+// MealHistory.tsx - Versão corrigida e ajustada (ATUALIZADO: edição NÃO altera alimentos)
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
@@ -45,7 +45,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   const [saving, setSaving] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Estado para controlar qual dialog/modal está aberto (por meal.id)
   const [openDialogId, setOpenDialogId] = useState<string | null>(null);
 
   const getMealTypeLabel = (type: string) => type;
@@ -148,51 +147,34 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
   };
 
   const handleEditMeal = async (meal: Meal) => {
-    // carregar dados da refeição e popular editFormData
+    // Usar os foodItems já presentes no meal (não reconstruir a partir de IDs)
     setEditingMeal(meal);
     try {
-      const alimentosRes = await refeicaoApi.listarAlimentos(Number(meal.id));
-      if (!Array.isArray(alimentosRes.data)) {
-        console.error("Erro: Formato inesperado de listarAlimentos");
-        alert("Erro ao carregar alimentos. Formato de dados inesperado.");
-        setEditingMeal(null);
-        setEditFormData(null);
-        return;
-      }
+      // Montar editFormData com os dados existentes da meal (mantendo alimentos)
+      const totals = calculateTotalsFromFoodItems(meal.foodItems || []);
 
-      const alimentosQuantidade: AlimentoQuantidadeDto[] = alimentosRes.data;
-      const alimentosDetalhados: FoodItem[] = alimentosQuantidade.map(aq => ({
-        id: String(aq.alimentoId),
-        name: `Alimento ${aq.alimentoId}`,
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        quantity: aq.quantidade
-      }));
-
-      const totals = calculateTotalsFromFoodItems(alimentosDetalhados);
-
+      // map mealType -> frontend enum (se necessário)
       const reverseMapForEdit: Record<string, string> = {
         'Café da manhã': 'breakfast',
         'Almoço': 'lunch',
         'Jantar': 'dinner',
         'Lanche': 'snack',
       };
-      const frontendType = reverseMapForEdit[meal.name] || meal.name;
+      const frontendType = reverseMapForEdit[meal.name] || meal.mealType || 'lunch';
 
       setEditFormData({
-        mealType: frontendType,
+        mealType: frontendType as any,
         date: meal.date,
-        foodItems: alimentosDetalhados,
+        foodItems: meal.foodItems || [],
         totalCalories: totals.calories,
         totalProtein: totals.protein,
         totalCarbs: totals.carbs,
         totalFat: totals.fat,
+        name: meal.name,
+        usuario: meal.usuario,
       });
     } catch (err) {
-      console.error("Erro ao carregar alimentos para edição:", err);
-      alert("Erro ao carregar alimentos para edição.");
+      console.error("Erro ao preparar edição:", err);
       setEditingMeal(null);
       setEditFormData(null);
     }
@@ -203,6 +185,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
     setEditFormData({ ...editFormData, [field]: value });
   };
 
+  // Mantém função para recalcular ao ajustar quantidades localmente (não utilizada para update backend)
   const updateFoodItem = (id: string, field: keyof FoodItem, value: any) => {
     if (!editFormData) return;
     const updated = editFormData.foodItems.map((item) =>
@@ -240,40 +223,24 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
       const refeicaoPayload = {
         tipo: backendTipo,
         usuario: { id: usuarioId },
-        data: editFormData.date,
       };
 
-      // Atualiza refeição existente
       await refeicaoApi.atualizar(Number(editingMeal.id), refeicaoPayload);
 
-      // Remove alimentos antigos
-      const alimentosAtuaisRes = await refeicaoApi.listarAlimentos(Number(editingMeal.id));
-      const alimentosAtuais: AlimentoQuantidadeDto[] = alimentosAtuaisRes.data || [];
-
-      for (const alimento of alimentosAtuais) {
-        await refeicaoApi.removerAlimento(Number(editingMeal.id), alimento.alimentoId);
-      }
-
-      // Adiciona alimentos novos
-      for (const food of editFormData.foodItems) {
-        if (food.quantity > 0) {
-          await refeicaoApi.adicionarAlimento(
-              Number(editingMeal.id),
-              Number(food.id),
-              food.quantity
-          );
-        }
-      }
-
-      // Atualiza estado no frontend
       const updatedMealForState: Omit<Meal, "id"> = {
-        ...editFormData,
         name: backendTipo,
+        foodItems: editingMeal.foodItems || [], // mantém alimentos originais
+        totalCalories: editFormData.totalCalories ?? mealTotals[editingMeal.id]?.calories ?? 0,
+        totalProtein: editFormData.totalProtein ?? mealTotals[editingMeal.id]?.protein ?? 0,
+        totalCarbs: editFormData.totalCarbs ?? mealTotals[editingMeal.id]?.carbs ?? 0,
+        totalFat: editFormData.totalFat ?? mealTotals[editingMeal.id]?.fat ?? 0,
+        date: editFormData.date,
+        mealType: editFormData.mealType as any,
+        usuario: editingMeal.usuario || { id: usuarioId },
       };
 
       onUpdateMeal?.(editingMeal.id, updatedMealForState);
 
-      // Fecha modal e limpa estado de edição
       setOpenDialogId(null);
       setEditingMeal(null);
       setEditFormData(null);
@@ -398,12 +365,11 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                         <Separator />
 
                         <div className="flex justify-end gap-2">
-                          {/* Botão que prepara os dados e abre o modal */}
                           <Button
                               variant="outline"
                               size="sm"
                               onClick={async () => {
-                                await handleEditMeal(meal); // busca alimentos e popula editFormData
+                                await handleEditMeal(meal);
                                 setOpenDialogId(meal.id);
                               }}
                           >
@@ -411,7 +377,6 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                             Editar
                           </Button>
 
-                          {/* Modal controlado */}
                           <Dialog
                               open={openDialogId === meal.id}
                               onOpenChange={(open) => {
@@ -427,7 +392,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                               <DialogHeader>
                                 <DialogTitle>Editar Refeição</DialogTitle>
                                 <DialogDescription>
-                                  Altere os dados da refeição e clique em Salvar Alterações.
+                                  Altere o tipo da refeição. Os alimentos não serão alterados.
                                 </DialogDescription>
                               </DialogHeader>
 
@@ -450,18 +415,11 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                         </Select>
                                       </div>
 
-                                      <div>
-                                        <Label>Data</Label>
-                                        <Input
-                                            type="date"
-                                            value={editFormData.date}
-                                            onChange={(e) => updateEditFormData('date', e.target.value)}
-                                        />
-                                      </div>
+
                                     </div>
 
                                     <div>
-                                      <h4 className="mb-2">Alimentos</h4>
+                                      <h4 className="mb-2">Alimentos (somente leitura)</h4>
                                       <div className="space-y-2">
                                         {editFormData.foodItems.map((food) => (
                                             <div key={food.id} className="flex gap-2 items-center">
@@ -471,14 +429,7 @@ export function MealHistory({ meals, onUpdateMeal, onDeleteMeal }: MealHistoryPr
                                                   {(food.calories ? Math.round((food.calories / 100) * (food.quantity || 0)) : 0)} kcal
                                                 </div>
                                               </div>
-                                              <div className="w-36">
-                                                <Label>Quantidade (g)</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={String(food.quantity || 0)}
-                                                    onChange={(e) => updateFoodItem(food.id, 'quantity', Number(e.target.value))}
-                                                />
-                                              </div>
+                                              {/* quantidade removida do formulário editável — mantida somente leitura */}
                                             </div>
                                         ))}
                                       </div>
