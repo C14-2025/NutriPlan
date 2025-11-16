@@ -10,9 +10,18 @@ public class RefeicaoDto {
     @NotBlank(message = "O tipo da refeição não pode ser vazio")
     private String tipo;
 
+    private List<AlimentoQuantidadeDto> alimentos; //nao é indicado usar map aqui
+
+
     @NotNull(message = "O usuário deve ser informado")
     private Usuario usuario;
-    private List<AlimentoQuantidadeDto> alimentos; //nao é indicado usar map aqui
+    public Usuario getUsuario() {
+        return usuario;
+    }
+
+    public void setUsuario(Usuario usuario) {
+        this.usuario = usuario;
+    }
 
     public String getTipo() {
         return tipo;
@@ -20,15 +29,6 @@ public class RefeicaoDto {
 
     public void setTipo(String tipo) {
         this.tipo = tipo;
-    }
-
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
     }
 
     public List<AlimentoQuantidadeDto> getAlimentos() {
