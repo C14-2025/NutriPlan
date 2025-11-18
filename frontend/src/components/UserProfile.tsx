@@ -158,17 +158,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
     return { category: 'Obesidade', variant: 'destructive' };
   };
 
-  const getActivityLabel = (level: string) => {
-    const labels = {
-      sedentary: 'Sedentário (pouco ou nenhum exercício)',
-      light: 'Levemente ativo (exercício leve 1-3 dias/semana)',
-      moderate: 'Moderadamente ativo (exercício moderado 3-5 dias/semana)',
-      active: 'Muito ativo (exercício intenso 6-7 dias/semana)',
-      'very-active': 'Extremamente ativo (exercício muito intenso, trabalho físico)'
-    };
-    return labels[level as keyof typeof labels] || level;
-  };
-
   if (isLoading) {
     return <div className="flex justify-center p-8">Carregando perfil...</div>;
   }
@@ -207,34 +196,7 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label className="mb-2">Sexo</Label>
-                <Select
-                    value={formData.sex}
-                    onValueChange={(value: string) => updateFormData('sex', value)}
-                    disabled={!isEditing}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="male">Homem</SelectItem>
-                    <SelectItem value="female">Mulher</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              <div>
-                <Label className="mb-2">Idade</Label>
-                <Input
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => updateFormData('age', Number(e.target.value))}
-                    disabled={!isEditing}
-                />
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -258,6 +220,17 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
             </div>
 
+
+              <div>
+                <Label className="mb-2">Idade</Label>
+                <Input
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => updateFormData('age', Number(e.target.value))}
+                    disabled={!isEditing}
+                />
+              </div>
+
             <div>
               <Label className="mb-2">Objetivo</Label>
               <Select
@@ -275,31 +248,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
                   <SelectItem value="definicao">Definição Muscular</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div>
-              <Label className="mb-2">Nível de Atividade</Label>
-              <Select
-                  value={formData.activityLevel}
-                  onValueChange={(value: string) => updateFormData('activityLevel', value)}
-                  disabled={!isEditing}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="sedentary">Sedentário</SelectItem>
-                  <SelectItem value="light">Levemente ativo</SelectItem>
-                  <SelectItem value="moderate">Moderadamente ativo</SelectItem>
-                  <SelectItem value="active">Muito ativo</SelectItem>
-                  <SelectItem value="very-active">Extremamente ativo</SelectItem>
-                </SelectContent>
-              </Select>
-              {!isEditing && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {getActivityLabel(formData.activityLevel)}
-                  </p>
-              )}
             </div>
 
             {isEditing && (
