@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'Maven-3.9.11'
     }
 
     options {
@@ -64,14 +64,19 @@ pipeline {
                         script {
                             def formatResult = sh(script: 'mvn spotless:check', returnStatus: true)
                             if (formatResult != 0) {
-                                echo '⚠️ Código mal formatado - aplicando correção automática...'
-                                sh 'mvn spotless:apply'
-                                
-                                echo '✅ Formatação automática aplicada com sucesso!'
-                                echo '📋 Arquivos corrigidos estão disponíveis no workspace do Jenkins'
-                                echo '💡 Para aplicar localmente: mvn spotless:apply'
+                                echo '❌ CÓDIGO MAL FORMATADO DETECTADO!'
+                                echo ''
+                                echo '🚫 Build FALHOU - código não está seguindo padrões de formatação'
+                                echo ''
+                                echo '📋 Para corrigir:'
+                                echo '   1. Execute: mvn spotless:apply'
+                                echo '   2. Faça commit das alterações'
+                                echo '   3. Faça push novamente'
+                                echo ''
+                                echo '💡 Isso garante que todo código siga o Google Java Format'
+                                error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
                             } else {
-                                echo '✅ Código já está bem formatado!'
+                                echo '✅ Código está bem formatado!'
                             }
                         }
                     }
