@@ -45,6 +45,22 @@ public class DashboardService {
         return resultado;
     }
 
+    public Map<String, Double> calcularDistribuicaoCaloricaPorDia(long usuarioId, LocalDate dia) {
+        Map<String, Double> macros = calcularMacrosPorDia(usuarioId, dia);
+
+        double prot = macros.getOrDefault("proteinas", 0.0);
+        double carb = macros.getOrDefault("carboidratos", 0.0);
+        double gord = macros.getOrDefault("gorduras", 0.0);
+
+        Map<String, Double> distribuicao = new HashMap<>();
+        distribuicao.put("caloriasProteina", prot * 4);
+        distribuicao.put("caloriasCarboidrato", carb * 4);
+        distribuicao.put("caloriasGordura", gord * 9);
+
+        return distribuicao;
+    }
+
+
     public List<Map<String, Object>> gerarRelatorioSemanal(long usuarioId) {
         LocalDate hoje = LocalDate.now();
         LocalDate inicioDaSemana = hoje.minusDays(6);
