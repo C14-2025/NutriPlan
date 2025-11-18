@@ -1,0 +1,76 @@
+pipeline {
+    agent any
+
+    tools {
+        maven 'Maven-3.9.11'
+    }
+
+    parameters {
+        string(name: 'BRANCH_NAME', defaultValue: 'main', description: 'Branch para aplicar formatação')
+    }
+
+    options {
+        timestamps()
+        disableConcurrentBuilds()
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo "Fazendo checkout da branch: ${params.BRANCH_NAME}"
+                checkout([
+                    $class: 'GitSCM',
+                    branches: [[name: "*/${params.BRANCH_NAME}"]],
+                    userRemoteConfigs: scm.userRemoteConfigs
+                ])
+            }
+        }
+
+        stage('Apply Code Formatting') {
+            steps {
+                echo 'Aplicando formatação automática...'
+                bat 'mvn spotless:apply'
+                
+                echo 'Formatação aplicada com sucesso ✅'
+            }
+        }
+
+        stage('Commit & Push Changes') {
+            when {
+                expression {
+                    // Só faz commit se houver mudanças
+                    return bat(script: 'git diff --quiet', returnStatus: true) != 0
+                }
+            }
+            steps {
+                echo 'Commitando mudanças de formatação...'
+                
+                bat '''
+                    git config user.name "Jenkins Auto-Format"
+                    git config user.email "jenkins@nutriplan.com"
+                    git add .
+                    git commit -m "style: aplicar formatação automática de código [skip ci]"
+                    git push origin %BRANCH_NAME%
+                '''
+                
+                echo 'Mudanças enviadas para o repositório ✅'
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Formatação automática concluída com sucesso!'
+            
+            // Trigger da job de quality check novamente
+            build job: 'NutriPlan-Quality-Check',
+                  parameters: [
+                      string(name: 'BRANCH_NAME', value: params.BRANCH_NAME)
+                  ],
+                  wait: false
+        }
+        failure {
+            echo '❌ Falha na formatação automática!'
+        }
+    }
+}

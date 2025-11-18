@@ -52,6 +52,13 @@ pipeline {
                     }
                 }
 
+                stage('Code Format Check') {
+                    steps {
+                        echo 'Verificando formatação do código...'
+                        bat 'mvn spotless:check'
+                    }
+                }
+
                 stage('Lint / Code Quality') {
                     steps {
                         echo 'Executando checagem de qualidade de código...'
@@ -81,6 +88,18 @@ pipeline {
         }
         failure {
             echo 'Falha detectada no pipeline.'
+            
+            // Se falhou por formatação, triggerar auto-format
+            script {
+                if (currentBuild.rawBuild.getLog(50).join('\n').contains('spotless:check')) {
+                    echo '🔧 Triggerando formatação automática...'
+                    build job: 'NutriPlan-Auto-Format', 
+                          parameters: [
+                              string(name: 'BRANCH_NAME', value: env.BRANCH_NAME)
+                          ],
+                          wait: false
+                }
+            }
         }
         always {
             echo 'Enviando notificação de conclusão...'
