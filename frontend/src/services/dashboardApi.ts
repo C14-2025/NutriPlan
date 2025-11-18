@@ -10,4 +10,9 @@ export const dashboardApi = {
         const response = await api.get(`/dashboard/relatorio-semanal/${usuarioId}`);
         return response.data;
     },
+
+    getDistribuicaoCalorica: async (usuarioId: number, dia: string) => {
+        const response = await api.get(`/dashboard/distribuicao-calorica/${usuarioId}/${dia}`);
+        return response.data; // caloriasProteina, caloriasCarboidrato, caloriasGordura
+    }
 };
