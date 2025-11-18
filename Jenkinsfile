@@ -61,7 +61,31 @@ pipeline {
                 stage('Code Format Check') {
                     steps {
                         echo 'Verificando formatação do código...'
-                        sh 'mvn spotless:check'
+                        script {
+                            def formatResult = sh(script: 'mvn spotless:check', returnStatus: true)
+                            if (formatResult != 0) {
+                                echo '⚠️ Código mal formatado - aplicando correção automática...'
+                                sh 'mvn spotless:apply'
+                                
+                                // Verificar se há mudanças para commitar
+                                def hasChanges = sh(script: 'git diff --quiet', returnStatus: true)
+                                if (hasChanges != 0) {
+                                    echo '📝 Commitando correções de formatação...'
+                                    sh '''
+                                        git config user.name "Jenkins Auto-Format"
+                                        git config user.email "jenkins@nutriplan.com"
+                                        git add .
+                                        git commit -m "style: aplicar formatação automática [skip ci]"
+                                        git push origin HEAD
+                                    '''
+                                    echo '✅ Formatação corrigida e enviada para o repositório!'
+                                } else {
+                                    echo '✅ Formatação corrigida (sem mudanças para commitar)'
+                                }
+                            } else {
+                                echo '✅ Código já está bem formatado!'
+                            }
+                        }
                     }
                 }
 
@@ -94,7 +118,6 @@ pipeline {
         }
         failure {
             echo 'Falha detectada no pipeline.'
-            
             echo '❌ Pipeline falhou - verifique os logs para detalhes'
         }
         always {
