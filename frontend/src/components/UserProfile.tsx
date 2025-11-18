@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Card, CardContent,CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import { Badge } from './ui/badge';
-import { Calculator, Save, Target, User, Activity } from 'lucide-react';
+import { Save, User} from 'lucide-react';
 import type { UserGoals } from '../App';
 import { getUsuario, updateUsuario, type UsuarioPayload } from '../services/usuarioApi';
 
@@ -51,7 +50,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  // 🔥 FUNÇÃO PARA MAPEAR UserGoals PARA UsuarioPayload
   const mapToBackendPayload = (): UsuarioPayload => {
     return {
       nome: formData.name || '',
@@ -60,55 +58,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
       altura: formData.height,
       objetivo: formData.goal || ''
     };
-  };
-
-  const calculateBMR = () => {
-    const { sex, age, weight, height } = formData;
-
-    if (sex === "female") {
-      return Math.round(
-          447.593 + (9.247 * weight) + (3.098 * height) - (4.330 * age)
-      );
-    }
-
-    return Math.round(
-        88.362 + (13.397 * weight) + (4.799 * height) - (5.677 * age)
-    );
-  };
-
-  const calculateCalorieNeeds = () => {
-    const bmr = calculateBMR();
-    const activityMultipliers = {
-      sedentary: 1.2,
-      light: 1.375,
-      moderate: 1.55,
-      active: 1.725,
-      'very-active': 1.9
-    };
-
-    const multiplier = activityMultipliers[formData.activityLevel as keyof typeof activityMultipliers] || 1.55;
-    return Math.round(bmr * multiplier);
-  };
-
-  const calculateMacroGoals = () => {
-    const calories = calculateCalorieNeeds();
-
-    const protein = Math.round((calories * 0.30) / 4);
-    const carbs = Math.round((calories * 0.40) / 4);
-    const fat = Math.round((calories * 0.30) / 9);
-
-    return { calories, protein, carbs, fat };
-  };
-
-  const handleAutoCalculate = () => {
-    const calculated = calculateMacroGoals();
-    setFormData(prev => ({
-      ...prev,
-      dailyCalories: calculated.calories,
-      dailyProtein: calculated.protein,
-      dailyCarbs: calculated.carbs,
-      dailyFat: calculated.fat
-    }));
   };
 
   const handleSave = async () => {
@@ -125,7 +74,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
 
       const updatedUser = await updateUsuario(userId, payloadParaBackend);
 
-      // Atualizar estado local
       onUpdateGoals(formData);
       setIsEditing(false);
 
@@ -145,25 +93,9 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
     setIsEditing(false);
   };
 
-  const getBMI = () => {
-    const heightInMeters = formData.height / 100;
-    const bmi = formData.weight / (heightInMeters * heightInMeters);
-    return bmi.toFixed(1);
-  };
-
-  const getBMICategory = (bmi: number) => {
-    if (bmi < 18.5) return { category: 'Abaixo do peso', variant: 'secondary' };
-    if (bmi < 25) return { category: 'Peso normal', variant: 'default' };
-    if (bmi < 30) return { category: 'Sobrepeso', variant: 'outline' };
-    return { category: 'Obesidade', variant: 'destructive' };
-  };
-
   if (isLoading) {
     return <div className="flex justify-center p-8">Carregando perfil...</div>;
   }
-
-  const bmi = parseFloat(getBMI());
-  const bmiCategory = getBMICategory(bmi);
 
   return (
       <div className="space-y-6">
