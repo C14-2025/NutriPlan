@@ -28,7 +28,6 @@ const commonFoods = [
 
 export function MealForm({ onSuccess }: MealFormProps) {
   const [mealType, setMealType] = useState<"breakfast" | "lunch" | "dinner" | "snack">("breakfast");
-  const [date, setDate] = useState(new Date().toISOString().split("T")[0]);
   const [loading, setLoading] = useState(false);
 
   const [foodItems, setFoodItems] = useState<FoodItem[]>([
@@ -95,7 +94,6 @@ export function MealForm({ onSuccess }: MealFormProps) {
 
   const resetForm = () => {
     setMealType("breakfast");
-    setDate(new Date().toISOString().split("T")[0]);
     setFoodItems([{ id: "1", name: "", quantity: 0, calories: 0, protein: 0, carbs: 0, fat: 0 }]);
   };
 
@@ -117,13 +115,14 @@ export function MealForm({ onSuccess }: MealFormProps) {
     }
 
     setLoading(true);
+
     try {
       const usuarioId = Number(localStorage.getItem("usuarioId")) || 1;
 
+      // ➜ sem enviar data
       const refeicaoPayload = {
         tipo: tipoMap[mealType],
         usuario: { id: usuarioId },
-        data: date,
       };
 
       const refeicaoRes = await refeicaoApi.criar(refeicaoPayload);
@@ -160,7 +159,8 @@ export function MealForm({ onSuccess }: MealFormProps) {
 
   return (
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <div className="grid grid-cols-1 md:grid-cols-1 gap-4">
           <div>
             <Label className="mb-2 block">Tipo de Refeição</Label>
             <Select value={mealType} onValueChange={(value: never) => setMealType(value)}>
@@ -174,17 +174,6 @@ export function MealForm({ onSuccess }: MealFormProps) {
                 <SelectItem value="snack">Lanche</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div>
-            <Label className="mb-2 block">Data</Label>
-            <Input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full"
-                required
-            />
           </div>
         </div>
 
