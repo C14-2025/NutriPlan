@@ -20,6 +20,12 @@ interface MacrosDiarios {
   gorduras: number;
 }
 
+interface DistribuicaoCalorica {
+  caloriasProteina: number;
+  caloriasCarboidrato: number;
+  caloriasGordura: number;
+}
+
 interface RelatorioSemanalDiario {
   day: string;
   calories: number;
@@ -29,45 +35,41 @@ interface RelatorioSemanalDiario {
 }
 
 export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
+
   const [weeklyData, setWeeklyData] = useState<RelatorioSemanalDiario[]>([]);
   const [macrosToday, setMacrosToday] = useState<MacrosDiarios | null>(null);
-  const [todayTotals, setTodayTotals] = useState({
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0
-  });
+  const [macroDistribution, setMacroDistribution] = useState<DistribuicaoCalorica | null>(null);
 
-  // useEffect para buscar os dados do backend
   useEffect(() => {
-    async function fetchDashboardData() {
+    async function fetchData() {
       try {
         const usuarioId = 1;
         const today = new Date().toISOString().split('T')[0];
 
-        const [macrosRes, semanalRes] = await Promise.all([
+        const [macrosRes, semanalRes, distribRes] = await Promise.all([
           dashboardApi.getMacrosPorDia(usuarioId, today),
           dashboardApi.getRelatorioSemanal(usuarioId),
+          dashboardApi.getDistribuicaoCalorica(usuarioId, today)
         ]);
 
         setMacrosToday(macrosRes);
         setWeeklyData(semanalRes);
-
-        setTodayTotals({
-          calories: macrosRes.calorias || 0,
-          protein: macrosRes.proteinas || 0,
-          carbs: macrosRes.carboidratos || 0,
-          fat: macrosRes.gorduras || 0,
-        });
+        setMacroDistribution(distribRes);
 
       } catch (error) {
-        console.error("Erro ao buscar dados do dashboard:", error);
+        console.error("Erro ao buscar dados:", error);
       }
     }
 
-    fetchDashboardData();
+    fetchData();
   }, []);
 
+  const todayTotals = {
+    calories: macrosToday?.calorias || 0,
+    protein: macrosToday?.proteinas || 0,
+    carbs: macrosToday?.carboidratos || 0,
+    fat: macrosToday?.gorduras || 0
+  };
 
   const calorieProgress = Math.min((todayTotals.calories / userGoals.dailyCalories) * 100, 100);
   const proteinProgress = Math.min((todayTotals.protein / userGoals.dailyProtein) * 100, 100);
@@ -75,14 +77,13 @@ export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
   const fatProgress = Math.min((todayTotals.fat / userGoals.dailyFat) * 100, 100);
 
   const macroData = [
-    { name: 'Proteína', value: (macrosToday?.proteinas || 0) * 4, color: '#8884d8' },
-    { name: 'Carboidratos', value: (macrosToday?.carboidratos || 0) * 4, color: '#82ca9d' },
-    { name: 'Gordura', value: (macrosToday?.gorduras || 0) * 9, color: '#ffc658' }
+    { name: 'Proteína', value: macroDistribution?.caloriasProteina || 0, color: '#8884d8' },
+    { name: 'Carboidratos', value: macroDistribution?.caloriasCarboidrato || 0, color: '#82ca9d' },
+    { name: 'Gordura', value: macroDistribution?.caloriasGordura || 0, color: '#ffc658' }
   ];
 
   return (
       <div className="space-y-6">
-        {/* Cards de Visão Geral Diária */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -157,11 +158,10 @@ export function NutritionDashboard({ userGoals }: NutritionDashboardProps) {
                       labelLine={false}
                       label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
                       outerRadius={80}
-                      fill="#8884d8"
                       dataKey="value"
                   >
                     {macroData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
+                        <Cell key={index} fill={entry.color} />
                     ))}
                   </Pie>
                   <Tooltip />

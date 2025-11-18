@@ -29,6 +29,18 @@ public class DashboardController {
         return dashboardService.calcularMacrosPorDia(usuarioId, LocalDate.parse(dia));
     }
 
+    @GetMapping("/distribuicao-calorica/{usuarioId}/{dia}")
+    public Map<String, Double> getDistribuicaoCalorica(
+            @PathVariable long usuarioId,
+            @PathVariable String dia) {
+
+        return dashboardService.calcularDistribuicaoCaloricaPorDia(
+                usuarioId,
+                LocalDate.parse(dia)
+        );
+    }
+
+
     @GetMapping("/relatorio-semanal/{usuarioId}")
     public List<Map<String, Object>> getRelatorioSemanal(@PathVariable long usuarioId) {
         return dashboardService.gerarRelatorioSemanal(usuarioId);

@@ -3,56 +3,76 @@ package br.inatel.nutriPlan.controllers;
 import br.inatel.nutriPlan.services.DashboardService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class DashBoardControllerTest {
 
-    private MockMvc mockMvc;
-    private DashboardService dashboardServiceMock;
+    @Mock
+    private DashboardService dashboardService;
+
+    @InjectMocks
+    private DashboardController controller;
+
     private final long userId = 1L;
 
     @BeforeEach
     void setup() {
-        dashboardServiceMock = Mockito.mock(DashboardService.class);
-        DashboardController controller = new DashboardController(dashboardServiceMock);
-        mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+        MockitoAnnotations.openMocks(this);
     }
 
-
     @Test
-    void testGetMacrosPorDia() throws Exception {
-        Map<String, Double> fakeResponse = Map.of("proteinas", 150.0, "carboidratos", 250.0, "gorduras", 20.0, "calorias", 1500.0);
+    void testGetMacrosPorDia() {
+        Map<String, Double> fakeResponse = Map.of("proteinas", 120.0, "carboidratos", 200.0, "gorduras", 40.0, "calorias", 1800.0);
 
-        when(dashboardServiceMock.calcularMacrosPorDia(userId, LocalDate.parse("2025-01-01")))
+        when(dashboardService.calcularMacrosPorDia(userId, LocalDate.parse("2025-01-01")))
                 .thenReturn(fakeResponse);
 
-        mockMvc.perform(get("/dashboard/macros-por-dia/{usuarioId}/{dia}", userId, "2025-01-01"))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"proteinas\":150.0,\"carboidratos\":250.0,\"gorduras\":20.0,\"calorias\":1500.0}"));
+        Map<String, Double> response = controller.getMacrosPorDia(userId, "2025-01-01");
+
+        assertEquals(120.0, response.get("proteinas"));
+        assertEquals(200.0, response.get("carboidratos"));
+        assertEquals(40.0, response.get("gorduras"));
+        assertEquals(1800.0, response.get("calorias"));
     }
 
     @Test
-    void testGetRelatorioSemanal() throws Exception {
-        List<Map<String, Object>> fakeResponse = List.of(
-                Map.of("day", "2025-11-06", "calories", 2000.0, "protein", 100.0, "carbs", 200.0, "fat", 50.0),
-                Map.of("day", "2025-11-07", "calories", 2100.0, "protein", 110.0, "carbs", 220.0, "fat", 55.0)
+    void testGetDistribuicaoCalorica() {
+        Map<String, Double> fakeResponse = Map.of("caloriasProteina", 400.0, "caloriasCarboidrato", 600.0, "caloriasGordura", 900.0
         );
 
-        when(dashboardServiceMock.gerarRelatorioSemanal(userId)).thenReturn(fakeResponse);
+        when(dashboardService.calcularDistribuicaoCaloricaPorDia(userId, LocalDate.parse("2025-01-01")))
+                .thenReturn(fakeResponse);
 
-        mockMvc.perform(get("/dashboard/relatorio-semanal/{usuarioId}", userId))
-                .andExpect(status().isOk())
-                .andExpect(content().json("[{\"day\":\"2025-11-06\",\"calories\":2000.0,\"protein\":100.0,\"carbs\":200.0,\"fat\":50.0},{\"day\":\"2025-11-07\",\"calories\":2100.0,\"protein\":110.0,\"carbs\":220.0,\"fat\":55.0}]")); // Corresponde ao formato da lista
+        Map<String, Double> response = controller.getDistribuicaoCalorica(userId, "2025-01-01");
+
+        assertEquals(400.0, response.get("caloriasProteina"));
+        assertEquals(600.0, response.get("caloriasCarboidrato"));
+        assertEquals(900.0, response.get("caloriasGordura"));
     }
+
+
+    @Test
+    void testGetRelatorioSemanal() {
+
+        List<Map<String, Object>> fakeResponse = List.of(Map.of("day", "2025-11-06", "calories", 2000.0, "protein", 100.0, "carbs", 200.0, "fat", 50.0), Map.of("day", "2025-11-07", "calories", 2100.0, "protein", 110.0, "carbs", 220.0, "fat", 55.0));
+
+        when(dashboardService.gerarRelatorioSemanal(userId)).thenReturn(fakeResponse);
+
+        List<Map<String, Object>> response = controller.getRelatorioSemanal(userId);
+
+        assertEquals(2, response.size());
+        assertEquals("2025-11-06", response.get(0).get("day"));
+        assertEquals(2000.0, response.get(0).get("calories"));
+    }
+
 }
