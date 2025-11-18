@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
-
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/refeicao")
 public class RefeicaoController {
@@ -86,7 +86,7 @@ public class RefeicaoController {
     @PostMapping("/{refeicaoId}/alimentos")
     public ResponseEntity<Refeicao> adicionarAlimento(@PathVariable long refeicaoId,
                                                       @RequestParam long alimentoId,
-                                                      @RequestParam int quantidade) {
+                                                      @RequestParam double quantidade) {
         Refeicao refeicao = refeicaoService.adicionarAlimento(refeicaoId, alimentoId,quantidade);
         return ResponseEntity.status(HttpStatus.CREATED).body(refeicao);
     }
