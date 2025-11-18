@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.11'
+        maven 'Maven'
     }
 
     options {
@@ -67,21 +67,9 @@ pipeline {
                                 echo '⚠️ Código mal formatado - aplicando correção automática...'
                                 sh 'mvn spotless:apply'
                                 
-                                // Verificar se há mudanças para commitar
-                                def hasChanges = sh(script: 'git diff --quiet', returnStatus: true)
-                                if (hasChanges != 0) {
-                                    echo '📝 Commitando correções de formatação...'
-                                    sh '''
-                                        git config user.name "Jenkins Auto-Format"
-                                        git config user.email "jenkins@nutriplan.com"
-                                        git add .
-                                        git commit -m "style: aplicar formatação automática [skip ci]"
-                                        git push origin HEAD
-                                    '''
-                                    echo '✅ Formatação corrigida e enviada para o repositório!'
-                                } else {
-                                    echo '✅ Formatação corrigida (sem mudanças para commitar)'
-                                }
+                                echo '✅ Formatação automática aplicada com sucesso!'
+                                echo '📋 Arquivos corrigidos estão disponíveis no workspace do Jenkins'
+                                echo '💡 Para aplicar localmente: mvn spotless:apply'
                             } else {
                                 echo '✅ Código já está bem formatado!'
                             }
