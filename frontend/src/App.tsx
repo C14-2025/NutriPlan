@@ -39,8 +39,6 @@ export interface UserGoals {
   weight: number;
   height: number;
   goal?: string;
-  sex: string;
-  activityLevel: string;
   dailyCalories: number;
   dailyProtein: number;
   dailyCarbs: number;
@@ -50,7 +48,6 @@ export interface UserGoals {
 function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
   const [userGoals, setUserGoals] = useState<UserGoals>({
-    sex: "male",
     age: 25,
     dailyCalories: 2000,
     dailyProtein: 150,
@@ -58,7 +55,6 @@ function App() {
     dailyFat: 67,
     weight: 70,
     height: 175,
-    activityLevel: "moderate",
   });
 
   const handleUpdateGoals = (updatedGoals: UserGoals) => {
@@ -69,9 +65,7 @@ function App() {
     try {
       const usuarioId = Number(localStorage.getItem("usuarioId")) || 1;
       const res = await refeicaoApi.listarPorUsuario(usuarioId);
-      // backend retorna Refeicao model; adapte campos se necessário
       const data = res.data || [];
-      // mapear para a interface Meal esperada pelo front (se necessário)
       const mapped = data.map((r: any) => ({
         id: String(r.id),
         name: r.tipo || "Refeição",
@@ -90,7 +84,7 @@ function App() {
         totalCarbs: 0,
         totalFat: 0,
         date: r.dataHora ? r.dataHora.split("T")[0] : new Date().toISOString().split("T")[0],
-        mealType: "lunch" // fallback — você pode mapear tipo textual pra enum se quiser
+        mealType: "lunch"
       }));
       setMeals(mapped);
     } catch (err) {
