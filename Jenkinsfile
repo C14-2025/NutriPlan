@@ -30,12 +30,18 @@ pipeline {
                 stage('Tests') {
                     steps {
                         echo 'Executando testes unitários...'
-                        bat "mvn -B test -Dtest='!NutriPlanApplicationTests'"
+                        sh "mvn -B test -Dtest='!NutriPlanApplicationTests'"
                     }
                     post {
                         always {
-                            junit "${REPORTS_DIR}/**/*.xml"
-                            archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
+                            script {
+                                if (fileExists("${REPORTS_DIR}")) {
+                                    junit "${REPORTS_DIR}/**/*.xml"
+                                    archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
+                                } else {
+                                    echo 'Nenhum relatório de teste encontrado'
+                                }
+                            }
                         }
                     }
                 }
@@ -43,7 +49,7 @@ pipeline {
                 stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
-                        bat 'mvn -B -DskipTests clean package'
+                        sh 'mvn -B -DskipTests clean package'
                     }
                     post {
                         success {
@@ -55,7 +61,7 @@ pipeline {
                 stage('Code Format Check') {
                     steps {
                         echo 'Verificando formatação do código...'
-                        bat 'mvn spotless:check'
+                        sh 'mvn spotless:check'
                     }
                 }
 
@@ -64,7 +70,7 @@ pipeline {
                         echo 'Executando checagem de qualidade de código...'
                         // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
                         // bat 'mvn checkstyle:check'
-                        bat 'dir'
+                        sh 'ls -la'
                     }
                 }
             }
@@ -89,17 +95,7 @@ pipeline {
         failure {
             echo 'Falha detectada no pipeline.'
             
-            // Se falhou por formatação, triggerar auto-format
-            script {
-                if (currentBuild.rawBuild.getLog(50).join('\n').contains('spotless:check')) {
-                    echo '🔧 Triggerando formatação automática...'
-                    build job: 'NutriPlan-Auto-Format', 
-                          parameters: [
-                              string(name: 'BRANCH_NAME', value: env.BRANCH_NAME)
-                          ],
-                          wait: false
-                }
-            }
+            echo '❌ Pipeline falhou - verifique os logs para detalhes'
         }
         always {
             echo 'Enviando notificação de conclusão...'
