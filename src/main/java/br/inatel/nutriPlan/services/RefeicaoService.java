@@ -4,115 +4,112 @@ import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.models.Refeicao;
 import br.inatel.nutriPlan.repositories.AlimentoRepository;
 import br.inatel.nutriPlan.repositories.RefeicaoRepository;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.*;
 
 @Service
 public class RefeicaoService {
 
-    @Autowired
-    private RefeicaoRepository refeicaoRepository;
-    @Autowired
-    private AlimentoRepository alimentoRepository;
+  @Autowired private RefeicaoRepository refeicaoRepository;
+  @Autowired private AlimentoRepository alimentoRepository;
 
-    public List<Refeicao> findAll() {
-        return refeicaoRepository.findAll();
+  public List<Refeicao> findAll() {
+    return refeicaoRepository.findAll();
+  }
+
+  public Optional<Refeicao> findById(long id) {
+    return refeicaoRepository.findById(id);
+  }
+
+  public Refeicao save(Refeicao refeicaoModel) {
+    return refeicaoRepository.save(refeicaoModel);
+  }
+
+  public void delete(Refeicao refeicao) {
+    refeicaoRepository.delete(refeicao);
+  }
+
+  public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, double quantidade) {
+    Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
+    if (optRefeicao.isEmpty()) {
+      throw new RuntimeException("Refeicao nao encontrada");
+    }
+    Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
+    if (optAlimento.isEmpty()) {
+      throw new RuntimeException("Alimento nao encontrado");
+    }
+    Alimento alimento = optAlimento.get();
+    Refeicao refeicao = optRefeicao.get();
+
+    if (refeicao.getAlimentos() == null) {
+      refeicao.setAlimentos(new ArrayList<>());
+    }
+    if (refeicao.getQuantidadePorAlimento() == null) {
+      refeicao.setQuantidadePorAlimento(new HashMap<>());
+    }
+    if (!refeicao.getAlimentos().contains(alimento)) {
+      refeicao.getAlimentos().add(alimento);
     }
 
-    public Optional<Refeicao> findById(long id) {
-        return refeicaoRepository.findById(id);
+    refeicao.getQuantidadePorAlimento().put(alimento, quantidade);
+
+    return refeicaoRepository.save(refeicao);
+  }
+
+  public Refeicao removerAlimento(long refeicaoId, long alimentoId) {
+    Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
+    if (optRefeicao.isEmpty()) {
+      throw new RuntimeException("Refeicao nao encontrada");
+    }
+    Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
+    if (optAlimento.isEmpty()) {
+      throw new RuntimeException("Alimento nao encontrado");
+    }
+    Refeicao refeicao = optRefeicao.get();
+    Alimento alimento = optAlimento.get();
+
+    if (refeicao.getQuantidadePorAlimento() != null) {
+      refeicao.getQuantidadePorAlimento().remove(alimento);
+    }
+    return refeicaoRepository.save(refeicao);
+  }
+
+  public Map<String, Double> calcularTotaisNutricionais(long refeicaoId) {
+    Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
+    if (optRefeicao.isEmpty()) {
+      throw new RuntimeException("Refeicao nao encontrada");
+    }
+    Refeicao refeicao = optRefeicao.get();
+    double totalCalorias = 0;
+    double totalProteinas = 0;
+    double totalCarboidratos = 0;
+    double totalGorduras = 0;
+
+    if (refeicao.getQuantidadePorAlimento() != null) {
+      for (Map.Entry<Alimento, Double> entry : refeicao.getQuantidadePorAlimento().entrySet()) {
+        Alimento alimento = entry.getKey();
+        double quantidadePorAlimento = entry.getValue();
+        totalCalorias += (alimento.getCalorias() / 100) * quantidadePorAlimento;
+        totalProteinas += (alimento.getProteinas() / 100) * quantidadePorAlimento;
+        totalCarboidratos += (alimento.getCarboidratos() / 100) * quantidadePorAlimento;
+        totalGorduras += (alimento.getGorduras() / 100) * quantidadePorAlimento;
+      }
     }
 
-    public Refeicao save(Refeicao refeicaoModel) {
-        return refeicaoRepository.save(refeicaoModel);
-    }
+    Map<String, Double> resultado = new HashMap<>();
+    resultado.put("Calorias", totalCalorias);
+    resultado.put("Proteinas", totalProteinas);
+    resultado.put("Carboidratos", totalCarboidratos);
+    resultado.put("Gorduras", totalGorduras);
+    return resultado;
+  }
 
-    public void delete(Refeicao refeicao) {
-        refeicaoRepository.delete(refeicao);
-    }
+  public List<Refeicao> findByUsuarioId(Long usuarioId) {
+    return refeicaoRepository.findByUsuarioId(usuarioId);
+  }
 
-    public Refeicao adicionarAlimento(long refeicaoId, long alimentoId, double quantidade) {
-        Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
-        if(optRefeicao.isEmpty()) {
-            throw new RuntimeException("Refeicao nao encontrada");
-        }
-        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
-        if(optAlimento.isEmpty()) {
-            throw new RuntimeException("Alimento nao encontrado");
-        }
-        Alimento alimento = optAlimento.get();
-        Refeicao refeicao = optRefeicao.get();
-
-        if (refeicao.getAlimentos() == null) {
-            refeicao.setAlimentos(new ArrayList<>());
-        }
-        if (refeicao.getQuantidadePorAlimento() == null) {
-            refeicao.setQuantidadePorAlimento(new HashMap<>());
-        }
-        if (!refeicao.getAlimentos().contains(alimento)) {
-            refeicao.getAlimentos().add(alimento);
-        }
-
-        refeicao.getQuantidadePorAlimento().put(alimento, quantidade);
-
-        return refeicaoRepository.save(refeicao);
-    }
-
-    public Refeicao removerAlimento(long refeicaoId, long alimentoId) {
-        Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
-        if(optRefeicao.isEmpty()) {
-            throw new RuntimeException("Refeicao nao encontrada");
-        }
-        Optional<Alimento> optAlimento = alimentoRepository.findById(alimentoId);
-        if(optAlimento.isEmpty()) {
-            throw new RuntimeException("Alimento nao encontrado");
-        }
-        Refeicao refeicao = optRefeicao.get();
-        Alimento alimento = optAlimento.get();
-
-        if (refeicao.getQuantidadePorAlimento() != null) {
-            refeicao.getQuantidadePorAlimento().remove(alimento);
-        }
-        return refeicaoRepository.save(refeicao);
-    }
-
-    public Map<String,Double> calcularTotaisNutricionais(long refeicaoId){
-        Optional<Refeicao> optRefeicao = refeicaoRepository.findById(refeicaoId);
-        if(optRefeicao.isEmpty()) {
-            throw new RuntimeException("Refeicao nao encontrada");
-        }
-        Refeicao refeicao = optRefeicao.get();
-        double totalCalorias = 0;
-        double totalProteinas = 0;
-        double totalCarboidratos = 0;
-        double totalGorduras = 0;
-
-        if(refeicao.getQuantidadePorAlimento() != null) {
-            for(Map.Entry<Alimento,Double> entry: refeicao.getQuantidadePorAlimento().entrySet()) {
-                Alimento alimento = entry.getKey();
-                double quantidadePorAlimento = entry.getValue();
-                totalCalorias += (alimento.getCalorias()/100) * quantidadePorAlimento;
-                totalProteinas += (alimento.getProteinas()/100) * quantidadePorAlimento;
-                totalCarboidratos += (alimento.getCarboidratos()/100) * quantidadePorAlimento;
-                totalGorduras += (alimento.getGorduras()/100) * quantidadePorAlimento;
-            }
-        }
-
-        Map<String,Double> resultado = new HashMap<>();
-        resultado.put("Calorias", totalCalorias);
-        resultado.put("Proteinas", totalProteinas);
-        resultado.put("Carboidratos", totalCarboidratos);
-        resultado.put("Gorduras", totalGorduras);
-        return resultado;
-    }
-
-    public List<Refeicao> findByUsuarioId(Long usuarioId) {
-        return refeicaoRepository.findByUsuarioId(usuarioId);
-    }
-
-    public List<Refeicao> findAllById(List<Long> refeicaoIds) {
-        return refeicaoRepository.findAllById(refeicaoIds);
-    }
+  public List<Refeicao> findAllById(List<Long> refeicaoIds) {
+    return refeicaoRepository.findAllById(refeicaoIds);
+  }
 }

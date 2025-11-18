@@ -9,64 +9,76 @@ import java.util.Map;
 @Entity
 public class Refeicao {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String tipo; // Café da manhã, Almoço, Jantar, Lanche
-    private LocalDateTime dataHora;
+  private String tipo; // Café da manhã, Almoço, Jantar, Lanche
+  private LocalDateTime dataHora;
 
+  @ManyToOne
+  @JoinColumn(name = "usuario_id")
+  private Usuario usuario;
 
-    @ManyToOne
-    @JoinColumn(name = "usuario_id")
-    private Usuario usuario;
+  @ManyToMany
+  @JoinTable(
+      name = "refeicao_alimento",
+      joinColumns = @JoinColumn(name = "refeicao_id"),
+      inverseJoinColumns = @JoinColumn(name = "alimento_id"))
+  private List<Alimento> alimentos;
 
+  @ElementCollection
+  @CollectionTable(name = "refeicao_quantidade", joinColumns = @JoinColumn(name = "refeicao_id"))
+  @MapKeyJoinColumn(name = "alimento_id")
+  @Column(name = "quantidade")
+  private Map<Alimento, Double> quantidadePorAlimento = new HashMap<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "refeicao_alimento",
-            joinColumns = @JoinColumn(name = "refeicao_id"),
-            inverseJoinColumns = @JoinColumn(name = "alimento_id")
-    )
-    private List<Alimento> alimentos;
+  // Getters e Setters
+  public Long getId() {
+    return id;
+  }
 
-    @ElementCollection
-    @CollectionTable(name = "refeicao_quantidade", joinColumns = @JoinColumn(name = "refeicao_id"))
-    @MapKeyJoinColumn(name = "alimento_id")
-    @Column(name = "quantidade")
-    private Map<Alimento, Double> quantidadePorAlimento = new HashMap<>();
+  public void setId(Long id) {
+    this.id = id;
+  }
 
+  public String getTipo() {
+    return tipo;
+  }
 
-    // Getters e Setters
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+  public void setTipo(String tipo) {
+    this.tipo = tipo;
+  }
 
-    public String getTipo() { return tipo; }
-    public void setTipo(String tipo) { this.tipo = tipo; }
+  public LocalDateTime getDataHora() {
+    return dataHora;
+  }
 
-    public LocalDateTime getDataHora() { return dataHora; }
-    public void setDataHora(LocalDateTime dataHora) { this.dataHora = dataHora; }
+  public void setDataHora(LocalDateTime dataHora) {
+    this.dataHora = dataHora;
+  }
 
+  public Usuario getUsuario() {
+    return usuario;
+  }
 
-    public Usuario getUsuario() { return usuario; }
-    public void setUsuario(Usuario usuario) { this.usuario = usuario; }
+  public void setUsuario(Usuario usuario) {
+    this.usuario = usuario;
+  }
 
+  public List<Alimento> getAlimentos() {
+    return alimentos;
+  }
 
-    public List<Alimento> getAlimentos() {
-        return alimentos;
-    }
+  public void setAlimentos(List<Alimento> alimentos) {
+    this.alimentos = alimentos;
+  }
 
-    public void setAlimentos(List<Alimento> alimentos) {
-        this.alimentos = alimentos;
-    }
+  public Map<Alimento, Double> getQuantidadePorAlimento() {
+    return quantidadePorAlimento;
+  }
 
-
-    public Map<Alimento, Double> getQuantidadePorAlimento() {
-        return quantidadePorAlimento;
-    }
-
-    public void setQuantidadePorAlimento(Map<Alimento, Double> quantidadePorAlimento) {
-        this.quantidadePorAlimento = quantidadePorAlimento;
-    }
+  public void setQuantidadePorAlimento(Map<Alimento, Double> quantidadePorAlimento) {
+    this.quantidadePorAlimento = quantidadePorAlimento;
+  }
 }
-
