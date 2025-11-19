@@ -18,6 +18,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 echo 'Fazendo checkout do código...'
@@ -27,6 +28,7 @@ pipeline {
 
         stage('Build & Test') {
             parallel {
+
                 stage('Tests') {
                     steps {
                         echo 'Executando testes unitários...'
@@ -55,13 +57,42 @@ pipeline {
                 stage('Lint / Code Quality') {
                     steps {
                         echo 'Executando checagem de qualidade de código...'
-                        // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
-                        // bat 'mvn checkstyle:check'
                         bat 'dir'
                     }
                 }
             }
         }
+        stage('Security Scan - OWASP') {
+            steps {
+                echo 'Executando análise de vulnerabilidades OWASP...'
+                bat "mvn org.owasp:dependency-check-maven:check"
+            }
+            post {
+                always {
+                    archiveArtifacts artifacts: "target/dependency-check-report.*", fingerprint: true
+                }
+            }
+        }
+
+        stage('Frontend Tests - Cypress') {
+            steps {
+                dir('frontend') {   
+                    echo 'Instalando dependências do frontend...'
+                    bat 'npm install'
+
+                    echo 'Executando testes E2E com Cypress...'
+                    bat 'npx cypress run --browser chrome --headless'
+                }
+            }
+            post {
+                always {
+                    echo 'Arquivando relatórios do Cypress...'
+                    archiveArtifacts artifacts: 'frontend/cypress/videos/**/*.mp4', fingerprint: true
+                    archiveArtifacts artifacts: 'frontend/cypress/screenshots/**/*', fingerprint: true
+                }
+            }
+        }
+
 
         stage('Deploy (opcional)') {
             when {
@@ -69,8 +100,6 @@ pipeline {
             }
             steps {
                 echo 'Implantando versão em ambiente de testes...'
-                // Exemplo:
-                // bat 'scp target/*.jar user@server:/apps/nutriplan/'
             }
         }
     }
