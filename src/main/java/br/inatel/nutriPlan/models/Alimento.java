@@ -1,74 +1,72 @@
 package br.inatel.nutriPlan.models;
 
 import jakarta.persistence.*;
-
 import java.util.List;
 
 @Entity
 public class Alimento {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  private Long id;
 
-    private String nome;
+  private String nome;
 
-    // PADRÃO: ALIMENTO GUARDA VALORES DE 100g
-    private Double calorias;
-    private Double carboidratos;
-    private Double proteinas;
-    private Double gorduras;
+  // PADRÃO: ALIMENTO GUARDA VALORES DE 100g
+  private Double calorias;
+  private Double carboidratos;
+  private Double proteinas;
+  private Double gorduras;
 
-    @ManyToMany(mappedBy = "alimentos")
-    private List<Refeicao> refeicoes;
+  @ManyToMany(mappedBy = "alimentos")
+  private List<Refeicao> refeicoes;
 
+  // Getters e Setters
+  public Long getId() {
+    return id;
+  }
 
-    // Getters e Setters
-    public Long getId() {
-        return id;
-    }
+  public void setId(Long id) {
+    this.id = id;
+  }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
+  public String getNome() {
+    return nome;
+  }
 
-    public String getNome() {
-        return nome;
-    }
+  public void setNome(String nome) {
+    this.nome = nome;
+  }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
+  public Double getCalorias() {
+    return calorias;
+  }
 
-    public Double getCalorias() {
-        return calorias;
-    }
+  public void setCalorias(Double calorias) {
+    this.calorias = calorias;
+  }
 
-    public void setCalorias(Double calorias) {
-        this.calorias = calorias;
-    }
+  public Double getCarboidratos() {
+    return carboidratos;
+  }
 
-    public Double getCarboidratos() {
-        return carboidratos;
-    }
+  public void setCarboidratos(Double carboidratos) {
+    this.carboidratos = carboidratos;
+  }
 
-    public void setCarboidratos(Double carboidratos) {
-        this.carboidratos = carboidratos;
-    }
+  public Double getProteinas() {
+    return proteinas;
+  }
 
-    public Double getProteinas() {
-        return proteinas;
-    }
+  public void setProteinas(Double proteinas) {
+    this.proteinas = proteinas;
+  }
 
-    public void setProteinas(Double proteinas) {
-        this.proteinas = proteinas;
-    }
+  public Double getGorduras() {
+    return gorduras;
+  }
 
-    public Double getGorduras() {
-        return gorduras;
-    }
-
-    public void setGorduras(Double gorduras) {
-        this.gorduras = gorduras;
-    }
+  public void setGorduras(Double gorduras) {
+    this.gorduras = gorduras;
+  }
 }

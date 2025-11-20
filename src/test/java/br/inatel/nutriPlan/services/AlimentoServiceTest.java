@@ -1,5 +1,8 @@
 package br.inatel.nutriPlan.services;
 
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.when;
+
 import br.inatel.nutriPlan.models.Alimento;
 import br.inatel.nutriPlan.repositories.AlimentoRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -8,46 +11,38 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
 class AlimentoServiceTest {
 
-    @Mock
-    private AlimentoRepository alimentoRepository;
+  @Mock private AlimentoRepository alimentoRepository;
 
-    @InjectMocks
-    private AlimentoService service; // injetando o mock no service
+  @InjectMocks private AlimentoService service; // injetando o mock no service
 
-    @BeforeEach
-    void setup() {
-        MockitoAnnotations.openMocks(this); // inicializando o mockito
-    }
+  @BeforeEach
+  void setup() {
+    MockitoAnnotations.openMocks(this); // inicializando o mockito
+  }
 
+  @Test
+  void testsaveNotNull() {
+    Alimento alimento = new Alimento();
+    alimento.setNome("Arroz");
 
-    @Test
-    void testsaveNotNull() {
-        Alimento alimento = new Alimento();
-        alimento.setNome("Arroz");
+    when(alimentoRepository.save(alimento)).thenReturn(alimento);
 
-        when(alimentoRepository.save(alimento)).thenReturn(alimento);
+    Alimento result = service.save(alimento);
 
-        Alimento result = service.save(alimento);
+    assertNotNull(result);
+  }
 
-        assertNotNull(result);
-    }
+  @Test
+  void testsaveIsCorrect() {
+    Alimento alimento = new Alimento();
+    alimento.setNome("Arroz");
 
-    @Test
-    void testsaveIsCorrect() {
-        Alimento alimento = new Alimento();
-        alimento.setNome("Arroz");
+    when(alimentoRepository.save(alimento)).thenReturn(alimento);
 
-        when(alimentoRepository.save(alimento)).thenReturn(alimento);
+    Alimento result = service.save(alimento);
 
-        Alimento result = service.save(alimento);
-
-        assertEquals("Arroz", result.getNome());
-
-    }
+    assertEquals("Arroz", result.getNome());
+  }
 }

@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9.11'
+        maven 'Maven'
     }
 
     options {
@@ -32,12 +32,18 @@ pipeline {
                 stage('Tests') {
                     steps {
                         echo 'Executando testes unitários...'
-                        bat "mvn -B test -Dtest='!NutriPlanApplicationTests'"
+                        sh "mvn -B test -Dtest='!NutriPlanApplicationTests'"
                     }
                     post {
                         always {
-                            junit "${REPORTS_DIR}/**/*.xml"
-                            archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
+                            script {
+                                if (fileExists("${REPORTS_DIR}")) {
+                                    junit "${REPORTS_DIR}/**/*.xml"
+                                    archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
+                                } else {
+                                    echo 'Nenhum relatório de teste encontrado'
+                                }
+                            }
                         }
                     }
                 }
@@ -45,7 +51,7 @@ pipeline {
                 stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
-                        bat 'mvn -B -DskipTests clean package'
+                        sh 'mvn -B -DskipTests clean package'
                     }
                     post {
                         success {
@@ -54,10 +60,36 @@ pipeline {
                     }
                 }
 
+                stage('Code Format Check') {
+                    steps {
+                        echo 'Verificando formatação do código...'
+                        script {
+                            def formatResult = sh(script: 'mvn spotless:check', returnStatus: true)
+                            if (formatResult != 0) {
+                                echo '❌ CÓDIGO MAL FORMATADO DETECTADO!'
+                                echo ''
+                                echo '🚫 Build FALHOU - código não está seguindo padrões de formatação'
+                                echo ''
+                                echo '📋 Para corrigir:'
+                                echo '   1. Execute: mvn spotless:apply'
+                                echo '   2. Faça commit das alterações'
+                                echo '   3. Faça push novamente'
+                                echo ''
+                                echo '💡 Isso garante que todo código siga o Google Java Format'
+                                error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
+                            } else {
+                                echo '✅ Código está bem formatado!'
+                            }
+                        }
+                    }
+                }
+
                 stage('Lint / Code Quality') {
                     steps {
                         echo 'Executando checagem de qualidade de código...'
-                        bat 'dir'
+                        // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
+                        // bat 'mvn checkstyle:check'
+                        sh 'ls -la'
                     }
                 }
             }
@@ -110,6 +142,7 @@ pipeline {
         }
         failure {
             echo 'Falha detectada no pipeline.'
+            echo '❌ Pipeline falhou - verifique os logs para detalhes'
         }
         always {
             echo 'Enviando notificação de conclusão...'
