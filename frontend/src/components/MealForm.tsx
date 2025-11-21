@@ -313,15 +313,15 @@ export function MealForm({ onSuccess }: MealFormProps) {
                 <div className="text-sm text-muted-foreground">Calorias</div>
               </div>
               <div>
-                <div className="text-2xl">{Math.round(totals.protein)}g</div>
+                <div className="text-2xl">{totals.protein.toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Proteína</div>
               </div>
               <div>
-                <div className="text-2xl">{Math.round(totals.carbs)}g</div>
+                <div className="text-2xl">{totals.carbs.toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Carboidratos</div>
               </div>
               <div>
-                <div className="text-2xl">{Math.round(totals.fat)}g</div>
+                <div className="text-2xl">{totals.fat.toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Gordura</div>
               </div>
             </div>

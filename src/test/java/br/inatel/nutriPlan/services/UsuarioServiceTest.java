@@ -22,7 +22,7 @@ public class UsuarioServiceTest {
 
   @BeforeEach
   public void setUp() {
-    MockitoAnnotations.initMocks(this);
+    MockitoAnnotations.openMocks(this);
   }
 
   @Test
@@ -60,13 +60,13 @@ public class UsuarioServiceTest {
     usuario1.setId(3L);
     usuario1.setNome("natalia");
 
-    when(usuarioRepository.findById(3)).thenReturn(Optional.of(usuario1));
+    when(usuarioRepository.findById(3L)).thenReturn(Optional.of(usuario1));
 
     Optional<Usuario> result = usuarioService.findById(3L);
 
     assertEquals(3L, result.get().getId());
     assertEquals("natalia", result.get().getNome());
-    verify(usuarioRepository, times(1)).findById(3);
+    verify(usuarioRepository, times(1)).findById(3L);
   }
 
   @Test

@@ -19,6 +19,8 @@ public class Usuario {
   private Double peso;
   private Double altura;
   private String objetivo;
+  private String sexo;
+  private String nivelAtividade;
 
   @JsonIgnore
   @OneToMany(mappedBy = "usuario")
@@ -95,5 +97,21 @@ public class Usuario {
 
   public void setRefeicoes(List<Refeicao> refeicoes) {
     this.refeicoes = refeicoes;
+  }
+
+  public String getSexo() {
+    return sexo;
+  }
+
+  public void setSexo(String sexo) {
+    this.sexo = sexo;
+  }
+
+  public String getNivelAtividade() {
+    return nivelAtividade;
+  }
+
+  public void setNivelAtividade(String nivelAtividade) {
+    this.nivelAtividade = nivelAtividade;
   }
 }

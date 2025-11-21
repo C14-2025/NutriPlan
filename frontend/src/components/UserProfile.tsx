@@ -128,7 +128,34 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               />
             </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label className="mb-2">Sexo</Label>
+                <Select
+                    value={formData.gender}
+                    onValueChange={(value: string) => updateFormData('gender', value)}
+                    disabled={!isEditing}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="masculino">Masculino</SelectItem>
+                    <SelectItem value="feminino">Feminino</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div>
+                <Label className="mb-2">Idade</Label>
+                <Input
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => updateFormData('age', Number(e.target.value))}
+                    disabled={!isEditing}
+                />
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -152,17 +179,6 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
               </div>
             </div>
 
-
-              <div>
-                <Label className="mb-2">Idade</Label>
-                <Input
-                    type="number"
-                    value={formData.age}
-                    onChange={(e) => updateFormData('age', Number(e.target.value))}
-                    disabled={!isEditing}
-                />
-              </div>
-
             <div>
               <Label className="mb-2">Objetivo</Label>
               <Select
@@ -174,10 +190,30 @@ export function UserProfile({ userGoals, onUpdateGoals, userId }: UserProfilePro
                   <SelectValue placeholder="Selecione seu objetivo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="emagrecer">Emagrecer</SelectItem>
-                  <SelectItem value="ganhar-massa">Ganhar Massa</SelectItem>
-                  <SelectItem value="manter">Manter Peso</SelectItem>
-                  <SelectItem value="definicao">Definição Muscular</SelectItem>
+                  <SelectItem value="perder_peso">Perder peso</SelectItem>
+                  <SelectItem value="manter_peso">Manter peso</SelectItem>
+                  <SelectItem value="ganhar_peso">Ganhar peso</SelectItem>
+                  <SelectItem value="ganhar_massa">Ganhar massa muscular</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="mb-2">Nível de Atividade</Label>
+              <Select
+                  value={formData.activityLevel}
+                  onValueChange={(value: string) => updateFormData('activityLevel', value)}
+                  disabled={!isEditing}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione seu nível de atividade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="sedentario">Sedentário</SelectItem>
+                  <SelectItem value="leve">Levemente ativo</SelectItem>
+                  <SelectItem value="moderado">Moderadamente ativo</SelectItem>
+                  <SelectItem value="intenso">Muito ativo</SelectItem>
+                  <SelectItem value="extremo">Extremamente ativo</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -51,7 +51,7 @@ public class RefeicaoController {
 
         var refeicaoModel = new Refeicao();
         BeanUtils.copyProperties(refeicaoDto, refeicaoModel); //converção de dto para model
-        refeicaoModel.setDataHora(LocalDateTime.now(ZoneId.of("UTC")));
+        refeicaoModel.setDataHora(LocalDateTime.now());
 
         Usuario usuario = usuarioService.findById(refeicaoDto.getUsuario().getId())
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
