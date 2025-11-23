@@ -143,6 +143,3 @@ Para corrigir formatação:
 ```bash
 mvn spotless:apply
 ```
-
-
-
