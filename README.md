@@ -189,11 +189,6 @@ npm run cypress:open
 ```
 
 ---
-
-## 🤝 Contribuição
-
-Este projeto foi desenvolvido pela equipe **C14-2025** como parte do curso de desenvolvimento de software.
-
 ### Estrutura do Projeto
 ```
 NutriPlan/
