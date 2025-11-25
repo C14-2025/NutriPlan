@@ -8,9 +8,12 @@
 
 O **NutriPlan** é uma aplicação web desenvolvida para auxiliar no acompanhamento nutricional diário. Com ela, é possível:
 
-* Registrar refeições consumidas.
-* Visualizar histórico nutricional.
-* Calcular macronutrientes (proteínas, carboidratos e gorduras).
+* **Sistema de Autenticação**: Login e cadastro de usuários
+* **Registrar refeições consumidas** com alimentos e quantidades
+* **Dashboard nutricional** com gráficos e métricas
+* **Histórico nutricional** completo
+* **Cálculo automático** de macronutrientes (proteínas, carboidratos e gorduras)
+* **Perfil do usuário** com dados pessoais e metas nutricionais
 
 Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover hábitos alimentares mais saudáveis por meio da tecnologia.
 
@@ -18,18 +21,48 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 
 ## ⚙️ Funcionalidades
 
-* **Cadastro de Refeições**: Adicione refeições com detalhes como nome, calorias e macronutrientes.
-* **Histórico Nutricional**: Acesse um histórico completo das refeições registradas.
-* **Cálculo de Macronutrientes**: Obtenha o total de proteínas, carboidratos e gorduras consumidos.
+### 🔐 Sistema de Autenticação
+* **Cadastro de usuários** com dados pessoais (nome, idade, peso, altura, sexo, nível de atividade, objetivo)
+* **Login seguro** com validação de credenciais
+* **Sessão de usuário** mantida no localStorage
+
+### 🍽️ Gestão de Refeições
+* **Cadastro de refeições** com múltiplos alimentos
+* **Busca de alimentos** na base de dados
+* **Cálculo automático** de macronutrientes por refeição
+* **Histórico completo** de refeições por usuário
+
+### 📊 Dashboard Nutricional
+* **Cards de progresso** diário (calorias, proteínas, carboidratos, gorduras)
+* **Gráfico de pizza** com distribuição calórica dos macronutrientes
+* **Gráfico de linha** com tendência semanal
+* **Metas personalizadas** baseadas no perfil do usuário
+
+### 👤 Perfil do Usuário
+* **Dados pessoais** editáveis (nome, idade, peso, altura, sexo)
+* **Nível de atividade** (sedentário, levemente ativo, moderadamente ativo, muito ativo, extremamente ativo)
+* **Objetivos** (perder peso, manter peso, ganhar peso, ganhar massa muscular)
+* **Metas nutricionais** personalizáveis
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
-* **Frontend**: HTML, CSS, JavaScript
-* **Backend**: Java (Spring Boot)
-* **Banco de Dados**: H2 Database
-* **Ferramentas**: Maven, Git
+### Backend
+* **Java 17** com Spring Boot 3.5.5
+* **Spring Data JPA** para persistência
+* **MySQL** como banco de dados
+* **Maven** para gerenciamento de dependências
+* **Jenkins** para CI/CD com pipeline automatizado
+* **Spotless** para formatação automática de código
+
+### Frontend
+* **React 19** com TypeScript
+* **Vite** como bundler
+* **Tailwind CSS** para estilização
+* **Radix UI** para componentes
+* **Recharts** para gráficos
+* **Axios** para requisições HTTP
 
 ---
 
@@ -39,79 +72,138 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 
 * [JDK 17 ou superior](https://www.oracle.com/java/technologies/javase-jdk17-downloads.html)
 * [Maven](https://maven.apache.org/install.html)
+* [Node.js 18+](https://nodejs.org/)
+* [MySQL 8.0+](https://dev.mysql.com/downloads/mysql/)
 * [Git](https://git-scm.com/)
 
-### Passos
+### Configuração do Banco de Dados
+
+1. Crie um banco MySQL:
+   ```sql
+   CREATE DATABASE nutriplan;
+   ```
+
+2. Configure as credenciais em `src/main/resources/application.properties`
+
+### Backend (Spring Boot)
 
 1. Clone o repositório:
-
    ```bash
    git clone https://github.com/C14-2025/NutriPlan.git
    cd NutriPlan
    ```
 
-2. Compile o projeto:
-
+2. Compile e execute o backend:
    ```bash
    mvn clean install
-   ```
-
-3. Execute a aplicação:
-
-   ```bash
    mvn spring-boot:run
    ```
 
-4. Acesse a aplicação no seu navegador:
+3. O backend estará rodando em: `http://localhost:8081`
 
+### Frontend (React)
+
+1. Navegue para a pasta frontend:
+   ```bash
+   cd frontend
    ```
-   http://localhost:8080
+
+2. Instale as dependências:
+   ```bash
+   npm install
    ```
-   
-# PostgreSQL + pgAdmin Docker
 
-Este projeto usa Docker para rodar **PostgreSQL** e **pgAdmin 4**, permitindo que o grupo trabalhe com o mesmo banco (via backup/importação) sem precisar compartilhar a pasta de dados diretamente.
+3. Execute o frontend:
+   ```bash
+   npm run dev
+   ```
+
+4. Acesse a aplicação em: `http://localhost:5173`
 
 ---
-## Comandos Docker básicos
 
-### Subir os containers
+## 🔧 Pipeline CI/CD
 
+O projeto utiliza **Jenkins** com pipeline automatizado que:
+
+* ✅ Executa testes automatizados
+* ✅ Verifica formatação de código com **Spotless**
+* ✅ Compila e empacota a aplicação
+* ✅ Falha o build se o código não estiver formatado corretamente
+
+### Formatação de Código
+
+Para formatar o código automaticamente:
 ```bash
-docker-compose up -d
+mvn spotless:apply
 ```
 
-### Parar os containers
-
+Para verificar formatação:
 ```bash
-docker-compose down
+mvn spotless:check
 ```
 
-### Verificar containers rodando
-
-```bash
-docker ps
-```
 ---
-## Criar backup do banco (export)
 
-Sempre que precisar compartilhar os dados com o grupo:
+## 📱 Funcionalidades por Tela
 
-```bash
-docker exec -t postgres pg_dump -U admin jenkins_db > backup.sql
-```
+### 🏠 Dashboard
+* Visão geral dos macronutrientes do dia
+* Progresso em relação às metas diárias
+* Gráfico de distribuição calórica
+* Tendência semanal de consumo
 
-* Isso gera o arquivo `backup.sql` na máquina local.
+### ➕ Adicionar Refeição
+* Busca e seleção de alimentos
+* Definição de quantidades
+* Cálculo automático de macronutrientes
+* Salvamento da refeição
+
+### 📋 Histórico
+* Lista de todas as refeições registradas
+* Filtros por data e tipo de refeição
+* Edição e exclusão de refeições
+* Detalhes nutricionais por refeição
+
+### 👤 Perfil
+* Dados pessoais do usuário
+* Configuração de metas nutricionais
+* Nível de atividade física
+* Objetivos de saúde
+
 ---
-## Restaurar backup do banco (import)
 
-No outro computador do grupo:
+## 🧪 Testes
 
+O projeto inclui testes automatizados com **Cypress** para:
+
+* ✅ Testes de interface do usuário
+* ✅ Fluxos de autenticação
+* ✅ Funcionalidades do dashboard
+* ✅ Gestão de perfil do usuário
+
+Para executar os testes:
 ```bash
-docker exec -i postgres psql -U admin -d jenkins_db < backup.sql
+cd frontend
+npm run cypress:open
 ```
 
-* Isso popula o banco com os dados do backup.
+---
+
+## 🤝 Contribuição
+
+Este projeto foi desenvolvido pela equipe **C14-2025** como parte do curso de desenvolvimento de software.
+
+### Estrutura do Projeto
+```
+NutriPlan/
+├── src/main/java/          # Código fonte Java (Backend)
+├── src/test/java/          # Testes unitários Java
+├── frontend/src/           # Código fonte React (Frontend)
+├── cypress/                # Testes E2E
+├── Jenkinsfile            # Pipeline CI/CD
+└── README.md              # Este arquivo
+```
 
 
 
