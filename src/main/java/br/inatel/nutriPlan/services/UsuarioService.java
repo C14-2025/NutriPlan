@@ -16,7 +16,7 @@ public class UsuarioService {
   }
 
   public Optional<Usuario> findById(long id) {
-    return usuarioRepository.findById((int) id);
+    return usuarioRepository.findById(id);
   }
 
   public Usuario save(Usuario usuarioModel) {

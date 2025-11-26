@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080/usuario';
+const API_BASE_URL = 'http://localhost:8081/usuario';
 
 export interface UsuarioPayload {
     nome: string;
@@ -6,6 +6,8 @@ export interface UsuarioPayload {
     peso: number;
     altura: number;
     objetivo: string;
+    sexo?: string;
+    nivelAtividade?: string;
 }
 
 export async function getUsuario(userId: number) {

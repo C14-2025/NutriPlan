@@ -5,8 +5,11 @@ import { NutritionDashboard } from "./components/NutritionDashboard";
 import { MealForm } from "./components/MealForm";
 import { MealHistory } from "./components/MealHistory";
 import { UserProfile } from "./components/UserProfile";
-import { Calculator, History, Home, User } from "lucide-react";
+import { Login } from "./components/Login";
+import { Register } from "./components/Register";
+import { Calculator, History, Home, User, LogOut } from "lucide-react";
 import { refeicaoApi } from "./services/refeicaoApi";
+import { Button } from "./components/ui/button";
 
 export interface Meal {
   id: string;
@@ -39,6 +42,8 @@ export interface UserGoals {
   weight: number;
   height: number;
   goal?: string;
+  gender?: string;
+  activityLevel?: string;
   dailyCalories: number;
   dailyProtein: number;
   dailyCarbs: number;
@@ -47,6 +52,9 @@ export interface UserGoals {
 
 function App() {
   const [meals, setMeals] = useState<Meal[]>([]);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [userGoals, setUserGoals] = useState<UserGoals>({
     age: 25,
     dailyCalories: 2000,
@@ -55,7 +63,28 @@ function App() {
     dailyFat: 67,
     weight: 70,
     height: 175,
+    gender: '',
+    activityLevel: ''
   });
+
+  useEffect(() => {
+    const usuarioId = localStorage.getItem('usuarioId');
+    const usuarioNome = localStorage.getItem('usuarioNome');
+    if (usuarioId && usuarioNome) {
+      setIsAuthenticated(true);
+      setCurrentUser({ 
+        id: usuarioId, 
+        nome: usuarioNome,
+        email: localStorage.getItem('usuarioEmail'),
+        idade: localStorage.getItem('usuarioIdade'),
+        peso: localStorage.getItem('usuarioPeso'),
+        altura: localStorage.getItem('usuarioAltura'),
+        objetivo: localStorage.getItem('usuarioObjetivo'),
+        sexo: localStorage.getItem('usuarioSexo'),
+        nivelAtividade: localStorage.getItem('usuarioNivelAtividade')
+      });
+    }
+  }, []);
 
   const handleUpdateGoals = (updatedGoals: UserGoals) => {
     setUserGoals(updatedGoals);
@@ -104,12 +133,54 @@ function App() {
     setMeals((prev) => prev.filter((meal) => meal.id !== id));
   };
 
+  const handleLoginSuccess = (usuario: any) => {
+    setCurrentUser(usuario);
+    setIsAuthenticated(true);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('usuarioId');
+    localStorage.removeItem('usuarioNome');
+    localStorage.removeItem('usuarioEmail');
+    localStorage.removeItem('usuarioIdade');
+    localStorage.removeItem('usuarioPeso');
+    localStorage.removeItem('usuarioAltura');
+    localStorage.removeItem('usuarioObjetivo');
+    localStorage.removeItem('usuarioSexo');
+    localStorage.removeItem('usuarioNivelAtividade');
+    setIsAuthenticated(false);
+    setCurrentUser(null);
+    setMeals([]);
+  };
+
+  if (!isAuthenticated) {
+    return showRegister ? (
+      <Register 
+        onRegisterSuccess={handleLoginSuccess}
+        onSwitchToLogin={() => setShowRegister(false)}
+      />
+    ) : (
+      <Login 
+        onLoginSuccess={handleLoginSuccess}
+        onSwitchToRegister={() => setShowRegister(true)}
+      />
+    );
+  }
+
+
+
   return (
       <div className="min-h-screen bg-gray-50">
         <div className="container mx-auto px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-3xl mb-2">NutriPlan</h1>
-            <p className="text-gray-600">Acompanhe sua alimentação e atinja suas metas nutricionais</p>
+          <div className="mb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-3xl mb-2">NutriPlan</h1>
+              <p className="text-gray-600">Bem-vindo, {currentUser?.nome}!</p>
+            </div>
+            <Button onClick={handleLogout} variant="outline">
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
           </div>
 
           <Tabs defaultValue="dashboard" className="w-full">
@@ -133,7 +204,7 @@ function App() {
             </TabsList>
 
             <TabsContent value="dashboard" className="mt-6">
-              <NutritionDashboard meals={meals} userGoals={userGoals} />
+              <NutritionDashboard userGoals={userGoals} />
             </TabsContent>
 
             <TabsContent value="add-meal" className="mt-6">
@@ -153,7 +224,7 @@ function App() {
             </TabsContent>
 
             <TabsContent value="profile" className="mt-6">
-              <UserProfile userGoals={userGoals} onUpdateGoals={handleUpdateGoals} userId={1} />
+              <UserProfile userGoals={userGoals} onUpdateGoals={handleUpdateGoals} userId={Number(currentUser?.id)} />
             </TabsContent>
           </Tabs>
         </div>
