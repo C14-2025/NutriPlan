@@ -1,37 +1,67 @@
 describe("NutritionDashboard UI Tests", () => {
 
-  beforeEach(() => {
-    cy.intercept("POST", "/auth/login", {
-      statusCode: 200,
-      body: {
-        id: 1,
-        nome: "Teste",
-        email: "teste@teste.com",
-        idade: 25,
-        peso: 70,
-        altura: 170,
-        objetivo: "Ganhar massa",
-        sexo: "F",
-        nivelAtividade: "Moderado"
-      }
-    }).as("loginMock");
+ beforeEach(() => {
+  cy.intercept("POST", "/auth/login", {
+    statusCode: 200,
+    body: {
+      id: 1,
+      nome: "Teste",
+      email: "teste@teste.com",
+      idade: 25,
+      peso: 70,
+      altura: 170,
+      objetivo: "Ganhar massa",
+      sexo: "F",
+      nivelAtividade: "Moderado"
+    }
+  }).as("loginMock");
 
-    
-    cy.visit("http://localhost:5173");
+  // macros do dia
+  cy.intercept("GET", "**/macros**", {
+    statusCode: 200,
+    body: {
+      calorias: 500,
+      proteinas: 40,
+      carboidratos: 60,
+      gorduras: 20
+    }
+  }).as("getMacros");
 
-    // preenche login
-    cy.get("#email").type("teste@teste.com");
-    cy.get("#senha").type("123456");
+  // relatório semanal
+  cy.intercept("GET", "**/semanal**", {
+    statusCode: 200,
+    body: [
+      { day: "2025-11-24", calories: 500, protein: 40, carbs: 60, fat: 20 },
+      { day: "2025-11-25", calories: 600, protein: 45, carbs: 70, fat: 25 }
+    ]
+  }).as("getWeekly");
 
-    
-    cy.contains("Entrar").click();
+  // distribuição calórica
+  cy.intercept("GET", "**/distribuicao**", {
+    statusCode: 200,
+    body: {
+      caloriasProteina: 200,
+      caloriasCarboidrato: 300,
+      caloriasGordura: 100
+    }
+  }).as("getDistrib");
 
-    cy.wait("@loginMock");
-    cy.contains('Dashboard').click();
-  });
+  cy.visit("http://localhost:5173");
+
+  cy.get("#email").type("teste@teste.com");
+  cy.get("#senha").type("123456");
+
+  cy.contains("Entrar").click();
+
+  cy.wait("@loginMock");
+
+  cy.contains("Dashboard").click();
+  
+  
+});
+
 
   it("Deve exibir corretamente os valores de macros do dia", () => {
-  cy.wait("@getMacros");
 
   cy.contains("500").should("exist");        // calorias
   cy.contains("40g").should("exist");        // proteína
