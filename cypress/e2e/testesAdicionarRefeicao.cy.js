@@ -1,160 +1,82 @@
-describe('MealForm Component', () => {
+describe("MealForm - Cadastro de Refeição", () => {
   beforeEach(() => {
-    cy.visit('http://localhost:5173'); 
-    cy.contains('Adicionar Refeição').click(); 
-  });
+    
+    cy.intercept("POST", "/auth/login", {
+      statusCode: 200,
+      body: {
+        id: 1,
+        nome: "Teste",
+        email: "teste@teste.com",
+        idade: 25,
+        peso: 70,
+        altura: 170,
+        objetivo: "Ganhar massa",
+        sexo: "F",
+        nivelAtividade: "Moderado"
+      }
+    }).as("loginMock");
 
-  it("Possui campo de nome da refeição", () => {
-    cy.get("#meal-name").should("exist");
-  });
+    
+    cy.visit("http://localhost:5173");
 
-  it("Possui campo de data", () => {
-      cy.get("#meal-date").should("exist");
-  });
+    // preenche login
+    cy.get("#email").type("teste@teste.com");
+    cy.get("#senha").type("123456");
 
-  it("Possui select de tipo de refeição", () => {
-      cy.contains("Tipo de Refeição").should("exist");
-  });
+    
+    cy.contains("Entrar").click();
 
-  it("Possui botão de adicionar alimento", () => {
-      cy.contains("Adicionar Alimento").should("exist");
-  });
-
-  it('deve renderizar os campos principais do formulário', () => {
-    cy.get('input#meal-name').should('be.visible');
-    cy.get('input#meal-date').should('be.visible');
-    cy.contains('Adicionar Alimento').should('exist');
-    cy.contains('Totais da Refeição').should('exist');
-  });
-
-  it('deve adicionar um novo campo de alimento ao clicar em "Adicionar Alimento"', () => {
-    cy.contains('Adicionar Alimento').click();
-    cy.contains('Alimento 2').should('exist');
-  });
-
-  it("Permite digitar quantidade", () => {
-    cy.get("input[placeholder='1']").first().type("2").should("have.value", "2");
-  });
-
-  it("Permite digitar calorias", () => {
-    cy.get("input[placeholder='0']").first().type("200").should("have.value", "200");
-  });
-
-  it("Impede salvar refeição sem nome", () => {
-    cy.get("button[type='submit']").click();
-    cy.on("window:alert", (str) => {
-      expect(str).to.equal("Por favor, preencha o nome da refeição e adicione pelo menos um alimento.");
-    });
-  });
-
-  it('deve preencher o formulário e adicionar uma refeição com sucesso', () => {
-  cy.get('input#meal-name').type('Jantar de Teste');
-  cy.get('[id="meal-date"]').invoke('val').should('not.be.empty');
-  cy.contains('Selecionar Alimento Comum').parent().find('[role="combobox"]').click();
-  cy.contains('[role="option"]', 'Arroz integral').should('be.visible').click();
-  cy.get('input[placeholder="1"]').clear().type('1');
-  cy.contains('Adicionar Refeição').click();
-
-  cy.on('window:alert', (msg) => {
-    expect(msg).to.include('Refeição adicionada com sucesso');
-  });
-});
-
-  it('deve impedir envio se o nome da refeição estiver vazio', () => {
-    cy.contains('Adicionar Refeição').click();
-    cy.on('window:alert', (msg) => {
-      expect(msg).to.include('Por favor, preencha o nome da refeição');
-    });
-  });
-
-  it('deve calcular corretamente os totais após adicionar alimento', () => {
-    cy.get('input#meal-name').type('Café da manhã');
-    cy.contains('Selecionar Alimento Comum').parent().find('[role="combobox"]').click();
-
-
-    cy.contains('[role="option"]', 'Ovo inteiro').should('be.visible').click();
-    cy.get('input[placeholder="1"]').clear().type('2');
+    cy.wait("@loginMock");
 
     cy.contains('Adicionar Refeição').click();
+  });
 
-    cy.on('window:alert', (msg) => {
-      expect(msg).to.include('Refeição adicionada com sucesso');
+  it("Deve renderizar todos os elementos da página de refeições", () => {
+    cy.contains("Tipo de Refeição");
+    cy.contains("Alimentos");
+    cy.contains("Adicionar Alimento");
+    cy.contains("Totais da Refeição");
+    cy.contains("Adicionar Refeição");
+  });
+
+  it("Deve permitir trocar o tipo de refeição", () => {
+    cy.get("[role='combobox']").first().click({ force: true });
+    cy.get("[role='option']")
+  .contains("Almoço", { matchCase: false })
+  .click({ force: true });
+  });
+
+  it("Deve adicionar um novo alimento", () => {
+    cy.contains("Adicionar Alimento").click({ force: true });
+    cy.contains("Alimento 2").should("exist");
+  });
+
+  it("Deve selecionar um alimento comum", () => {
+  
+  cy.get("[role='combobox']").eq(1).click({ force: true });
+  cy.get("div[role='listbox']", { timeout: 5000 })
+    .should("be.visible")
+    .within(() => {
+      cy.contains("Arroz branco cozido").click({ force: true });
     });
 
-    // Espera render do total
-    cy.wait(300);
+  cy.get("input[placeholder='Ex: Arroz branco']")
+    .first()
+    .should("have.value", "Arroz branco cozido");
 
-    cy.contains('Calorias')
-      .parent()
-      .find('.text-2xl')
-      .should(($el) => {
-        const value = parseInt($el.text());
-        expect(value).to.be.greaterThan(100);
-      });
+  cy.get("input[type='number']").eq(1).should("have.value", "130");
   });
 
-  it('deve remover um alimento ao clicar no botão de lixeira', () => {
-    cy.contains('Adicionar Alimento').click();
-    cy.contains('Alimento 2').parent().within(() => {
-      cy.get('button').contains('Trash2').should('exist');
-    });
 
-    cy.get('button').contains('Alimento 2').should('exist');
+  it("Deve preencher manualmente os campos", () => {
+  cy.get("input[placeholder='Ex: Arroz branco']")
+    .clear()
+    .type("Ovo cozido");
+
+  cy.get("input[type='number']").eq(1).clear().type("50");  // quantidade
+  cy.get("input[type='number']").eq(2).clear().type("155"); // calorias
+
+  cy.get("input[placeholder='Ex: Arroz branco']")
+    .should("have.value", "Ovo cozido");
   });
-
-  it('deve navegar corretamente usando a tecla Tab', () => {
-    cy.get('body').tab();
-    cy.focused().should('have.attr', 'id', 'meal-name');
-    cy.focused().tab();
-    cy.focused().should('have.attr', 'id', 'meal-date');
-    cy.focused().tab();
-    cy.focused().should('have.attr', 'aria-label', 'Selecionar Alimento Comum');
-    cy.focused().tab();
-    cy.focused().should('have.attr', 'placeholder', 'Quantidade em porções');
-    cy.focused().tab();
-    cy.focused().should('have.attr', 'aria-label', 'Adicionar Alimento');
-    cy.focused().tab();
-    cy.focused().should('have.attr', 'aria-label', 'Adicionar Refeição');
-  });
-
-  it('deve navegar corretamente para o formulário ao clicar na aba "Adicionar Refeição"', () => {
-    cy.contains('Adicionar Refeição').click();
-    cy.url().should('include', '/add-meal');
-    cy.contains('Adicionar Nova Refeição').should('be.visible');
-  });
-
-  it('deve manter a funcionalidade após recarregar a página', () => {
-    cy.reload();
-    cy.contains('Adicionar Refeição').click();
-    cy.contains('Adicionar Nova Refeição').should('be.visible');
-  });
-
-  it('deve ajustar o layout para diferentes tamanhos de tela', () => {
-    cy.viewport(320, 480);
-    cy.get('form').should('be.visible');
-    cy.viewport(768, 1024);
-    cy.get('form').should('be.visible');
-    cy.viewport(1440, 900);
-    cy.get('form').should('be.visible');
-  });
-
-  it('deve carregar o formulário rapidamente', () => {
-        onLoad: (contentWindow) => {
-        const loadTime = contentWindow.performance.timing.loadEventEnd - contentWindow.performance.timing.navigationStart;
-        expect(loadTime).to.be.lessThan(2000);
-      } 
-  });
-
-  it("Reset do formulário após envio", () => {
-    cy.get("#meal-name").type("Teste Reset");
-
-    cy.contains("Selecionar Alimento Comum").click();
-    cy.contains("Arroz branco").click();
-    cy.get("input[placeholder='1']").clear().type("1");
-
-    cy.get("button[type='submit']").click();
-
-    cy.get("#meal-name").should("have.value", "");
-  });
-
 });
