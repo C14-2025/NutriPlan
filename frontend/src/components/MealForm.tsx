@@ -45,11 +45,16 @@ export function MealForm({ onSuccess }: MealFormProps) {
     return items.reduce(
         (acc, item) => {
           const qty = item.quantity || 0;
+          const calories = item.calories || 0;
+          const protein = item.protein || 0;
+          const carbs = item.carbs || 0;
+          const fat = item.fat || 0;
+          
           return {
-            calories: acc.calories + (item.calories / 100) * qty,
-            protein: acc.protein + (item.protein / 100) * qty,
-            carbs: acc.carbs + (item.carbs / 100) * qty,
-            fat: acc.fat + (item.fat / 100) * qty,
+            calories: acc.calories + (calories / 100) * qty,
+            protein: acc.protein + (protein / 100) * qty,
+            carbs: acc.carbs + (carbs / 100) * qty,
+            fat: acc.fat + (fat / 100) * qty,
           };
         },
         { calories: 0, protein: 0, carbs: 0, fat: 0 }
@@ -313,15 +318,15 @@ export function MealForm({ onSuccess }: MealFormProps) {
                 <div className="text-sm text-muted-foreground">Calorias</div>
               </div>
               <div>
-                <div className="text-2xl">{totals.protein.toFixed(1)}g</div>
+                <div className="text-2xl">{(totals.protein || 0).toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Proteína</div>
               </div>
               <div>
-                <div className="text-2xl">{totals.carbs.toFixed(1)}g</div>
+                <div className="text-2xl">{(totals.carbs || 0).toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Carboidratos</div>
               </div>
               <div>
-                <div className="text-2xl">{totals.fat.toFixed(1)}g</div>
+                <div className="text-2xl">{(totals.fat || 0).toFixed(1)}g</div>
                 <div className="text-sm text-muted-foreground">Gordura</div>
               </div>
             </div>

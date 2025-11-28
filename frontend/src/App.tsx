@@ -92,9 +92,21 @@ function App() {
 
   const reloadMeals = async () => {
     try {
-      const usuarioId = Number(localStorage.getItem("usuarioId")) || 1;
+      const usuarioId = Number(localStorage.getItem("usuarioId"));
+      if (!usuarioId) {
+        console.log("Usuário não encontrado");
+        return;
+      }
+      
       const res = await refeicaoApi.listarPorUsuario(usuarioId);
       const data = res.data || [];
+      
+      if (data.length === 0) {
+        console.log("Nenhuma refeição encontrada para o usuário");
+        setMeals([]);
+        return;
+      }
+      
       const mapped = data.map((r: any) => ({
         id: String(r.id),
         name: r.tipo || "Refeição",
@@ -116,14 +128,17 @@ function App() {
         mealType: "lunch"
       }));
       setMeals(mapped);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao carregar refeições:", err);
+      setMeals([]);
     }
   };
 
   useEffect(() => {
-    reloadMeals();
-  }, []);
+    if (isAuthenticated) {
+      reloadMeals();
+    }
+  }, [isAuthenticated]);
 
   const updateMeal = (id: string, updatedMeal: Omit<Meal, "id">) => {
     setMeals((prev) => prev.map((meal) => (meal.id === id ? { ...updatedMeal, id } : meal)));

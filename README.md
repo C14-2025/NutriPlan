@@ -99,7 +99,7 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
    mvn spring-boot:run
    ```
 
-3. O backend estará rodando em: `http://localhost:8081`
+3. O backend estará rodando em: `http://localhost:8080`
 
 ### Frontend (React)
 
