@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8081/usuario';
+const API_BASE_URL = 'http://localhost:8080/usuario';
 
 export interface UsuarioPayload {
     nome: string;
