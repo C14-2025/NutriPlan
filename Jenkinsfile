@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'Maven-3.9.11'
     }
 
     options {
@@ -26,37 +26,22 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
+        stage('Parallel Jobs') {
             parallel {
-
                 stage('Tests') {
                     steps {
-                        echo 'Executando testes unitários...'
-                        sh "mvn -B test -Dtest='!NutriPlanApplicationTests'"
-                    }
-                    post {
-                        always {
-                            script {
-                                if (fileExists("${REPORTS_DIR}")) {
-                                    junit "${REPORTS_DIR}/**/*.xml"
-                                    archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
-                                } else {
-                                    echo 'Nenhum relatório de teste encontrado'
-                                }
-                            }
-                        }
+                        echo 'Executando testes...'
+                        bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
+                        junit 'target\\surefire-reports\\**\\*.xml'
+                        archiveArtifacts artifacts: 'target\\surefire-reports\\**\\*', fingerprint: true
                     }
                 }
 
                 stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
-                        sh 'mvn -B -DskipTests clean package'
-                    }
-                    post {
-                        success {
-                            archiveArtifacts artifacts: "${ARTIFACT_DIR}/*.jar", fingerprint: true
-                        }
+                        bat 'mvn -B -DskipTests clean package'
+                        archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
                     }
                 }
 
@@ -84,12 +69,10 @@ pipeline {
                     }
                 }
 
-                stage('Lint / Code Quality') {
+                stage('Lint Check') {
                     steps {
-                        echo 'Executando checagem de qualidade de código...'
-                        // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
-                        // bat 'mvn checkstyle:check'
-                        sh 'ls -la'
+                        echo 'Verificando estrutura...'
+                        bat 'dir'
                     }
                 }
             }
