@@ -1,2 +1,0 @@
-Teste para triggerar Jenkins pipeline
-Data: 18/11/2025
