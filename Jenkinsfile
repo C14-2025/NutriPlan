@@ -49,7 +49,7 @@ pipeline {
                     steps {
                         echo 'Verificando formatação do código...'
                         script {
-                            def formatResult = sh(script: 'mvn spotless:check', returnStatus: true)
+                            def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
                             if (formatResult != 0) {
                                 echo '❌ CÓDIGO MAL FORMATADO DETECTADO!'
                                 echo ''
@@ -68,6 +68,7 @@ pipeline {
                         }
                     }
                 }
+
 
                 stage('Lint Check') {
                     steps {
