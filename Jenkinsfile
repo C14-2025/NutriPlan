@@ -2,19 +2,13 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven'
+        maven 'Maven-3.9.11'
     }
 
     options {
         timestamps()
         disableConcurrentBuilds()
         buildDiscarder(logRotator(numToKeepStr: '10'))
-    }
-
-    environment {
-        MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
-        ARTIFACT_DIR = 'target'
-        REPORTS_DIR = 'target/surefire-reports'
     }
 
     stages {
@@ -26,74 +20,48 @@ pipeline {
             }
         }
 
-        stage('Build & Test') {
+        stage('Parallel Jobs') {
             parallel {
-
                 stage('Tests') {
                     steps {
-                        echo 'Executando testes unitários...'
-                        sh "mvn -B test -Dtest='!NutriPlanApplicationTests'"
-                    }
-                    post {
-                        always {
-                            script {
-                                if (fileExists("${REPORTS_DIR}")) {
-                                    junit "${REPORTS_DIR}/**/*.xml"
-                                    archiveArtifacts artifacts: "${REPORTS_DIR}/**/*", fingerprint: true
-                                } else {
-                                    echo 'Nenhum relatório de teste encontrado'
-                                }
-                            }
-                        }
+                        echo 'Executando testes...'
+                        bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
+                        junit 'target\\surefire-reports\\**\\*.xml'
+                        archiveArtifacts artifacts: 'target\\surefire-reports\\**\\*', fingerprint: true
                     }
                 }
 
                 stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
-                        sh 'mvn -B -DskipTests clean package'
-                    }
-                    post {
-                        success {
-                            archiveArtifacts artifacts: "${ARTIFACT_DIR}/*.jar", fingerprint: true
-                        }
-                    }
-                }
-
-                stage('Code Format Check') {
-                    steps {
-                        echo 'Verificando formatação do código...'
-                        script {
-                            def formatResult = sh(script: 'mvn spotless:check', returnStatus: true)
-                            if (formatResult != 0) {
-                                echo '❌ CÓDIGO MAL FORMATADO DETECTADO!'
-                                echo ''
-                                echo '🚫 Build FALHOU - código não está seguindo padrões de formatação'
-                                echo ''
-                                echo '📋 Para corrigir:'
-                                echo '   1. Execute: mvn spotless:apply'
-                                echo '   2. Faça commit das alterações'
-                                echo '   3. Faça push novamente'
-                                echo ''
-                                echo '💡 Isso garante que todo código siga o Google Java Format'
-                                error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
-                            } else {
-                                echo '✅ Código está bem formatado!'
-                            }
-                        }
-                    }
-                }
-
-                stage('Lint / Code Quality') {
-                    steps {
-                        echo 'Executando checagem de qualidade de código...'
-                        // Se tiver plugin de análise (como Checkstyle ou SpotBugs):
-                        // bat 'mvn checkstyle:check'
-                        sh 'ls -la'
+                        bat 'mvn -B -DskipTests clean package'
+                        archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
                     }
                 }
             }
         }
+
+        stage('Code Format Check') {
+            steps {
+                echo 'Verificando formatação do código...'
+                script {
+                    def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
+                    if (formatResult != 0) {
+                        echo 'CÓDIGO MAL FORMATADO DETECTADO!'
+                        echo 'Build FALHOU - código não está seguindo padrões de formatação'
+                        echo 'Para corrigir:'
+                        echo '   1. Execute: mvn spotless:apply'
+                        echo '   2. Faça commit das alterações'
+                        echo '   3. Faça push novamente'
+                        echo 'Isso garante que todo código siga o Google Java Format'
+                        error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
+                    } else {
+                        echo 'Código está bem formatado!'
+                    }
+                }
+            }
+        }
+
         stage('Security Scan - OWASP') {
             steps {
                 echo 'Executando análise de vulnerabilidades OWASP...'
@@ -142,17 +110,18 @@ pipeline {
         }
         failure {
             echo 'Falha detectada no pipeline.'
-            echo '❌ Pipeline falhou - verifique os logs para detalhes'
+            echo 'Pipeline falhou - verifique os logs para detalhes'
         }
         always {
             echo 'Enviando notificação de conclusão...'
             emailext(
                 subject: "NutriPlan Pipeline - ${currentBuild.currentResult}",
-                body: """<p>Pipeline finalizada para o commit <b>${env.GIT_COMMIT}</b> na branch <b>${env.BRANCH_NAME}</b>.</p>
-                         <p>Resultado da build: <b>${currentBuild.currentResult}</b></p>
-                         <p><a href="${env.BUILD_URL}">Ver detalhes no Jenkins</a></p>""",
-                mimeType: 'text/html',
-                to: 'srsilveira03@gmail.com'
+                body: """Pipeline finalizada para o commit ${env.GIT_COMMIT} na branch ${env.BRANCH_NAME}.
+
+                Resultado da build: ${currentBuild.currentResult}
+
+                Verifique os logs no Jenkins para mais detalhes.""",
+                to: "batistanatp@gmail.com"
             )
         }
     }
