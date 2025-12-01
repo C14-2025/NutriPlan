@@ -11,12 +11,6 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
-    environment {
-        MAVEN_OPTS = '-Dmaven.test.failure.ignore=false'
-        ARTIFACT_DIR = 'target'
-        REPORTS_DIR = 'target/surefire-reports'
-    }
-
     stages {
 
         stage('Checkout') {
@@ -44,40 +38,30 @@ pipeline {
                         archiveArtifacts artifacts: 'target\\*.jar', fingerprint: true
                     }
                 }
-
-                stage('Code Format Check') {
-                    steps {
-                        echo 'Verificando formatação do código...'
-                        script {
-                            def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
-                            if (formatResult != 0) {
-                                echo '❌ CÓDIGO MAL FORMATADO DETECTADO!'
-                                echo ''
-                                echo '🚫 Build FALHOU - código não está seguindo padrões de formatação'
-                                echo ''
-                                echo '📋 Para corrigir:'
-                                echo '   1. Execute: mvn spotless:apply'
-                                echo '   2. Faça commit das alterações'
-                                echo '   3. Faça push novamente'
-                                echo ''
-                                echo '💡 Isso garante que todo código siga o Google Java Format'
-                                error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
-                            } else {
-                                echo '✅ Código está bem formatado!'
-                            }
-                        }
-                    }
-                }
-
-
-                stage('Lint Check') {
-                    steps {
-                        echo 'Verificando estrutura...'
-                        bat 'dir'
-                    }
-                }
             }
         }
+
+        stage('Code Format Check') {
+                            steps {
+                                echo 'Verificando formatação do código...'
+                                script {
+                                    def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
+                                    if (formatResult != 0) {
+                                        echo 'CÓDIGO MAL FORMATADO DETECTADO!'
+                                        echo 'Build FALHOU - código não está seguindo padrões de formatação'
+                                        echo 'Para corrigir:'
+                                        echo '   1. Execute: mvn spotless:apply'
+                                        echo '   2. Faça commit das alterações'
+                                        echo '   3. Faça push novamente'
+                                        echo 'Isso garante que todo código siga o Google Java Format'
+                                        error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
+                                    } else {
+                                        echo 'Código está bem formatado!'
+                                    }
+                                }
+                            }
+                        }
+
         stage('Security Scan - OWASP') {
             steps {
                 echo 'Executando análise de vulnerabilidades OWASP...'
@@ -126,17 +110,18 @@ pipeline {
         }
         failure {
             echo 'Falha detectada no pipeline.'
-            echo '❌ Pipeline falhou - verifique os logs para detalhes'
+            echo 'Pipeline falhou - verifique os logs para detalhes'
         }
         always {
             echo 'Enviando notificação de conclusão...'
             emailext(
                 subject: "NutriPlan Pipeline - ${currentBuild.currentResult}",
-                body: """<p>Pipeline finalizada para o commit <b>${env.GIT_COMMIT}</b> na branch <b>${env.BRANCH_NAME}</b>.</p>
-                         <p>Resultado da build: <b>${currentBuild.currentResult}</b></p>
-                         <p><a href="${env.BUILD_URL}">Ver detalhes no Jenkins</a></p>""",
-                mimeType: 'text/html',
-                to: 'srsilveira03@gmail.com'
+                body: """Pipeline finalizada para o commit ${env.GIT_COMMIT} na branch ${env.BRANCH_NAME}.
+
+                Resultado da build: ${currentBuild.currentResult}
+
+                Verifique os logs no Jenkins para mais detalhes.""",
+                to: "batistanatp@gmail.com"
             )
         }
     }
