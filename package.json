@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "cypress-plugin-tab": "^1.0.5"
+  }
+}
