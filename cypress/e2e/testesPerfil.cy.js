@@ -1,7 +1,7 @@
 describe("UserProfile Component", () => {
 
   beforeEach(() => {
-    cy.visit("http://localhost:5173/perfil");
+    cy.visit("http://localhost:5173");
     cy.contains('Perfil').click(); 
   });
 
