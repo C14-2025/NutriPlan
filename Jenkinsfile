@@ -22,7 +22,7 @@ pipeline {
 
         stage('Parallel Jobs') {
             parallel {
-                Tests {
+                stage('Tests') {
                     steps {
                         echo 'Executando testes...'
                         bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
@@ -31,7 +31,7 @@ pipeline {
                     }
                 }
 
-                Package {
+                stage('Package') {
                     steps {
                         echo 'Gerando pacote...'
                         bat 'mvn -B -DskipTests clean package'
@@ -42,25 +42,25 @@ pipeline {
         }
 
         stage('Code Format Check') {
-                            steps {
-                                echo 'Verificando formatação do código...'
-                                script {
-                                    def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
-                                    if (formatResult != 0) {
-                                        echo 'CÓDIGO MAL FORMATADO DETECTADO!'
-                                        echo 'Build FALHOU - código não está seguindo padrões de formatação'
-                                        echo 'Para corrigir:'
-                                        echo '   1. Execute: mvn spotless:apply'
-                                        echo '   2. Faça commit das alterações'
-                                        echo '   3. Faça push novamente'
-                                        echo 'Isso garante que todo código siga o Google Java Format'
-                                        error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
-                                    } else {
-                                        echo 'Código está bem formatado!'
-                                    }
-                                }
-                            }
-                        }
+            steps {
+                echo 'Verificando formatação do código...'
+                script {
+                    def formatResult = bat(script: 'mvn spotless:check', returnStatus: true)
+                    if (formatResult != 0) {
+                        echo 'CÓDIGO MAL FORMATADO DETECTADO!'
+                        echo 'Build FALHOU - código não está seguindo padrões de formatação'
+                        echo 'Para corrigir:'
+                        echo '   1. Execute: mvn spotless:apply'
+                        echo '   2. Faça commit das alterações'
+                        echo '   3. Faça push novamente'
+                        echo 'Isso garante que todo código siga o Google Java Format'
+                        error('Build falhou: código mal formatado. Execute mvn spotless:apply para corrigir.')
+                    } else {
+                        echo 'Código está bem formatado!'
+                    }
+                }
+            }
+        }
 
         stage('Security Scan - OWASP') {
             steps {
