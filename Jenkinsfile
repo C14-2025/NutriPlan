@@ -22,7 +22,7 @@ pipeline {
 
         stage('Parallel Jobs') {
             parallel {
-                stage('Tests') {
+                Tests {
                     steps {
                         echo 'Executando testes...'
                         bat 'mvn -B test -Dtest="!NutriPlanApplicationTests"'
@@ -31,7 +31,7 @@ pipeline {
                     }
                 }
 
-                stage('Package') {
+                Package {
                     steps {
                         echo 'Gerando pacote...'
                         bat 'mvn -B -DskipTests clean package'
