@@ -1,6 +1,7 @@
-import { allureCypress } from "allure-cypress/reporter";
+const { allureCypress } = require("allure-cypress/reporter");
 const { defineConfig } = require('cypress');
-
+const { Status } = require("allure-js-commons");
+const os = require("os");
 
 module.exports = defineConfig({
   reporter: 'mochawesome',
