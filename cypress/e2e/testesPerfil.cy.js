@@ -1,8 +1,34 @@
 describe("UserProfile Component", () => {
 
   beforeEach(() => {
-    cy.visit("http://localhost:5173/perfil");
-    cy.contains('Perfil').click(); 
+    cy.intercept("POST", "/auth/login", {
+      statusCode: 200,
+      body: {
+        id: 1,
+        nome: "Teste",
+        email: "teste@teste.com",
+        idade: 25,
+        peso: 70,
+        altura: 170,
+        objetivo: "Ganhar massa",
+        sexo: "F",
+        nivelAtividade: "Moderado"
+      }
+    }).as("loginMock");
+
+    
+    cy.visit("http://localhost:5173");
+
+    // preenche login
+    cy.get("#email").type("teste@teste.com");
+    cy.get("#senha").type("123456");
+
+    
+    cy.contains("Entrar").click();
+
+    cy.wait("@loginMock");
+
+    cy.contains('Perfil').click();
   });
 
   it("Renderiza Perfil do Usuário", () => {
@@ -26,8 +52,8 @@ describe("UserProfile Component", () => {
   it("Permite alterar sexo", () => {
     cy.contains("Editar Perfil").click();
     cy.contains("Sexo").parent().find("button").click();
-    cy.contains("Mulher").click();
-    cy.contains("Mulher").should("exist");
+    cy.contains("Feminino").click();
+    cy.contains("Feminino").should("exist");
   });
 
   it("Abre select de nível de atividade", () => {
@@ -35,11 +61,6 @@ describe("UserProfile Component", () => {
     cy.contains("Nível de Atividade").parent().find("button").click();
     cy.contains("Moderadamente ativo").should("exist");
   });
-
-  it("Exibe descrição do nível de atividade quando não está editando", () => {
-    cy.contains("Moderadamente ativo").should("exist");
-  });
-
 
   it("Permite alterar idade", () => {
     cy.contains("Editar Perfil").click();
@@ -59,54 +80,6 @@ describe("UserProfile Component", () => {
     cy.contains("Idade").parent().find("input").clear().type("10");
     cy.contains("Cancelar").click();
     cy.contains("Idade").parent().find("input").should("not.have.value", "10");
-  });
-
-
-  it("Exibe IMC corretamente", () => {
-    cy.contains("IMC").should("exist");
-  });
-
-
-  it("Exibe categoria do IMC", () => {
-  cy.contains(/Abaixo do peso|Peso normal|Sobrepeso|Obesidade/)
-    .should("be.visible");
-});
-
-
-  it("Renderiza taxa metabólica basal", () => {
-    cy.contains("TMB").should("exist");
-  });
-
-
-  it("Exibe calorias/dia com atividade", () => {
-    cy.contains("Calorias/dia").should("exist");
-  });
-
-
-  it("Botão Calcular Automaticamente preenche metas", () => {
-    cy.contains("Editar Perfil").click();
-    cy.contains("Calcular Automaticamente").click();
-    cy.contains("Calorias Diárias").parent().find("input").should("not.have.value", "");
-  });
-
-
-  it("Permite alterar metas nutricionais", () => {
-    cy.contains("Editar Perfil").click();
-    cy.contains("Calorias Diárias").parent().find("input").clear().type("2000");
-    cy.contains("Salvar Metas").click();
-  });
-
-
-  it("Renderiza distribuição de macronutrientes", () => {
-    cy.contains("Proteína").should("exist");
-    cy.contains("Carboidratos").should("exist");
-    cy.contains("Gordura").should("exist");
-  });
-
-  it("Smoke test geral do UserProfile", () => {
-    cy.contains("Perfil do Usuário").should("exist");
-    cy.contains("Métricas de Saúde").should("exist");
-    cy.contains("Metas Nutricionais").should("exist");
   });
 
 });

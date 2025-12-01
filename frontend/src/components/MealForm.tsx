@@ -333,7 +333,7 @@ export function MealForm({ onSuccess }: MealFormProps) {
           </CardContent>
         </Card>
 
-        <Button type="submit" className="w-full" disabled={loading}>
+        <Button type="submit" data-cy="submit-adicionar-refeicao" className="w-full" disabled={loading}>
           {loading ? "Salvando..." : "Adicionar Refeição"}
         </Button>
       </form>
