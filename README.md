@@ -127,9 +127,17 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 O projeto utiliza **Jenkins** com pipeline automatizado que:
 
 * ✅ Executa testes automatizados
-* ✅ Verifica formatação de código com **Spotless**
 * ✅ Compila e empacota a aplicação
 * ✅ Falha o build se o código não estiver formatado corretamente
+* Para rodar jenkins, no cmd:
+  
+```bash
+cd "C:\Program Files\Jenkins"
+```
+
+```bash
+ java -jar jenkins.war --httpPort=8081
+```
 
 ### Formatação de Código
 
