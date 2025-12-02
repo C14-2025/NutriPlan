@@ -5,7 +5,7 @@ describe("NutritionDashboard UI Tests", () => {
     window.localStorage.setItem("usuarioId", "1");
     window.localStorage.setItem("usuarioNome", "Giovana");
 
-    cy.intercept("GET", "/dashboard/macros-por-dia/1/2025-12-01", {
+    cy.intercept("GET", "/dashboard/macros-por-dia/*/*", {
       statusCode: 200,
       body: {
         calorias: 1500,
@@ -15,7 +15,7 @@ describe("NutritionDashboard UI Tests", () => {
       }
     }).as("getMacros");
 
-    cy.intercept("GET", "/dashboard/relatorio-semanal/1", {
+    cy.intercept("GET", "/dashboard/relatorio-semanal/*", {
       statusCode: 200,
       body: [
         { day: "2025-11-25", calories: 1800, protein: 120, carbs: 200, fat: 60 },
@@ -23,7 +23,7 @@ describe("NutritionDashboard UI Tests", () => {
       ]
     }).as("getWeekly");
 
-    cy.intercept("GET", "/dashboard/distribuicao-calorica/1/2025-12-01", {
+    cy.intercept("GET", "/dashboard/distribuicao-calorica/*/*", {
       statusCode: 200,
       body: {
         caloriasProteina: 400,
