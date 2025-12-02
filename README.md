@@ -80,7 +80,10 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 
 1. Crie um banco MySQL:
    ```sql
-   CREATE DATABASE nutriplan;
+drop database if exists nutriplan;
+create database nutriplan;
+use nutriplan;
+show tables;
    ```
 
 2. Configure as credenciais em `src/main/resources/application.properties`
