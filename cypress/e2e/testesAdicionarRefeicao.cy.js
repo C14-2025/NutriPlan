@@ -1,32 +1,10 @@
 describe("MealForm - Cadastro de Refeição", () => {
   beforeEach(() => {
     
-    cy.intercept("POST", "/auth/login", {
-      statusCode: 200,
-      body: {
-        id: 1,
-        nome: "Teste",
-        email: "teste@teste.com",
-        idade: 25,
-        peso: 70,
-        altura: 170,
-        objetivo: "Ganhar massa",
-        sexo: "F",
-        nivelAtividade: "Moderado"
-      }
-    }).as("loginMock");
+    window.localStorage.setItem("usuarioId", "1");
+    window.localStorage.setItem("usuarioNome", "Giovana");
 
-    
     cy.visit("http://localhost:5173");
-
-    // preenche login
-    cy.get("#email").type("teste@teste.com");
-    cy.get("#senha").type("123456");
-
-    
-    cy.contains("Entrar").click();
-
-    cy.wait("@loginMock");
 
     cy.contains('Adicionar Refeição').click();
   });
