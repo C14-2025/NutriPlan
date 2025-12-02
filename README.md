@@ -79,28 +79,28 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 ### Configuração do Banco de Dados
 
 1. Crie um banco MySQL:
-   ```sql
+```bash
 drop database if exists nutriplan;
 create database nutriplan;
 use nutriplan;
 show tables;
-   ```
+```
 
 2. Configure as credenciais em `src/main/resources/application.properties`
 
 ### Backend (Spring Boot)
 
 1. Clone o repositório:
-   ```bash
+```bash
    git clone https://github.com/C14-2025/NutriPlan.git
    cd NutriPlan
-   ```
+```
 
 2. Compile e execute o backend:
-   ```bash
+ ```bash
    mvn clean install
    mvn spring-boot:run
-   ```
+ ```
 
 3. O backend estará rodando em: `http://localhost:8080`
 
