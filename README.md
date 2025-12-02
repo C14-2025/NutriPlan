@@ -184,8 +184,7 @@ O projeto inclui testes automatizados com **Cypress** para:
 
 Para executar os testes:
 ```bash
-cd frontend
-npm run cypress:open
+npx cypress run
 ```
 
 ---
