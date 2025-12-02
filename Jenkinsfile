@@ -76,23 +76,25 @@ pipeline {
 
         stage('Frontend Tests - Cypress') {
             steps {
-                dir('frontend') {   
-                    echo 'Instalando dependências do frontend...'
+                echo 'Instalando dependências do frontend...'
+                dir('frontend') {
                     bat 'npm install'
-
-                    echo 'Executando testes E2E com Cypress...'
-                    bat 'npx cypress run --browser chrome --headless'
                 }
+
+                echo 'Instalando dependências do Cypress...'
+                bat 'npm install'  // <-- executado na raiz do projeto
+
+                echo 'Executando testes E2E com Cypress...'
+                bat 'npx cypress run --browser chrome --headless'  // <-- executado na raiz
             }
             post {
                 always {
                     echo 'Arquivando relatórios do Cypress...'
-                    archiveArtifacts artifacts: 'frontend/cypress/videos/**/*.mp4', fingerprint: true
-                    archiveArtifacts artifacts: 'frontend/cypress/screenshots/**/*', fingerprint: true
+                    archiveArtifacts artifacts: 'cypress/videos/**/*.mp4', fingerprint: true
+                    archiveArtifacts artifacts: 'cypress/screenshots/**/*', fingerprint: true
                 }
             }
         }
-
 
         stage('Deploy (opcional)') {
             when {
