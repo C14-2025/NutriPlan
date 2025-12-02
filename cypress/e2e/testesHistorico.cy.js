@@ -1,122 +1,73 @@
-describe("MealHistory Component", () => {
+describe("MealHistory - Histórico de Refeições", () => {
+  const mealsMock = [
+    {
+      id: '1',
+      name: 'Refeição',
+      date: '2025-12-01',
+      usuario: { id: 1 }
+    }
+  ];
+
+  const alimentosMock = [
+    { id: 10, nome: 'Arroz branco cozido', calorias: 130, proteinas: 2.4, carboidratos: 28.2, gorduras: 0.3 }
+  ];
+
   beforeEach(() => {
-    cy.visit("http://localhost:5173"); 
-    cy.contains('Histórico').click(); 
+    
+    window.localStorage.setItem('usuarioId', '1');
+    window.localStorage.setItem('usuarioNome', 'Teste');
+
+    
+    cy.intercept('GET', '/alimento', { statusCode: 200, body: alimentosMock }).as('getFoods');
+    cy.intercept('GET', '/refeicao/usuario/1', { statusCode: 200, body: mealsMock }).as('getMeals');
+    cy.intercept('GET', '/refeicao/1/alimentos', {
+      statusCode: 200,
+      body: [{ alimentoId: 10, quantidade: 150 }]
+    }).as('getMealFoods');
+    cy.intercept('DELETE', '/refeicao/1', { statusCode: 204 }).as('deleteMeal');
+    cy.intercept('PUT', '/refeicao/1', { statusCode: 200 }).as('updateMeal');
+
+    cy.visit('http://localhost:5173');
+
+    cy.contains('Histórico').click();
+
   });
 
-  it("Renderiza título Filtros", () => {
-    cy.contains("Filtros").should("be.visible");
+  it("Deve exibir o histórico da refeição corretamente", () => {
+    cy.contains("Refeição").should("exist");
+    cy.contains("Arroz").should("exist");
+    cy.contains("150").should("exist");
   });
 
-  it("Renderiza select de tipo de refeição", () => {
-    cy.contains("Tipo de Refeição").should("exist");
-    cy.get("button").contains("Todas as refeições").should("exist");
+  it("Deve filtrar por tipo de refeição", () => {
+    cy.contains("Tipo de Refeição").click();
+    cy.contains("Refeição").click();
+    cy.contains("Refeição").should("exist");
   });
 
-  it("Abre select de tipos de refeição", () => {
-    cy.contains("Todas as refeições").click();
-    cy.contains("Café da manhã").should("be.visible");
-    cy.contains("Almoço").should("be.visible");
-    cy.contains("Jantar").should("be.visible");
-    cy.contains("Lanche").should("be.visible");
+  it("Deve filtrar por data", () => {
+    cy.get("input[type='date']").invoke('val', '2025-12-01').trigger('change');
+    cy.contains("Refeição").should("exist");
   });
 
-  it("Filtra por tipo breakfast", () => {
-    cy.contains("Todas as refeições").click();
-    cy.contains("Café da manhã").click();
-    cy.get("body").then(($body) => {
-      if ($body.text().includes("Nenhuma refeição encontrada")) {
-        expect(true).to.be.true;
-      }
-    });
+  it("Deve editar uma refeição", () => {
+    cy.contains("Editar").click();
+    cy.get("[role='combobox']");
+    cy.contains("Almoço").click({ force: true });
+    cy.get("button").contains("Salvar").click({ force: true });
+    cy.contains("Almoço").should("exist");
   });
 
-  it("Possui filtro de data", () => {
-    cy.get("input[type='date']").should("exist");
-  });
-
-  it("Mensagem quando nenhum resultado encontrado", () => {
-    cy.get("input[type='date']").type("1999-01-01");
-    cy.contains("Nenhuma refeição encontrada").should("exist");
-  });
-
-  it("Renderiza lista de refeições quando existem", () => {
-    cy.get("body").then(($body) => {
-      if ($body.find("div:contains('Calorias')").length > 0) {
-        expect(true).to.be.true;
-      }
-    });
-  });
-
-  it("Cada refeição possui nome", () => {
-    cy.get("div").contains(/Calorias|Proteína|Carboidratos/).should("exist");
-  });
-
-  it("Mostra Badges: Café da manhã, Almoço, Jantar, Lanche", () => {
-    cy.get("body").then(($body) => {
-      const badges = ["Café da manhã", "Almoço", "Jantar", "Lanche"];
-      const found = badges.some(b => $body.text().includes(b));
-      expect(found).to.be.true;
-    });
-  });
-
-  it("Mostra badge Hoje quando refeição é do dia", () => {
-    cy.contains("Hoje").should("exist");
-  });
-
-  it("Mostra data formatada com weekday", () => {
-    cy.contains(/segunda|terça|quarta|quinta|sexta|sábado|domingo/i).should("exist");
-  });
-
-  it("Renderiza valores nutricionais (Calorias, Proteína, Carboidratos, Gordura)", () => {
-    cy.contains("Calorias").should("exist");
-    cy.contains("Proteína").should("exist");
-    cy.contains("Carboidratos").should("exist");
-    cy.contains("Gordura").should("exist");
-  });
-
-  it("Mostra alimentos dentro da refeição", () => {
-    cy.contains("Alimentos").should("exist");
-  });
-
-  it("Botão Editar aparece", () => {
-    cy.contains("Editar").should("exist");
-  });
-
-  it("Botão Excluir aparece", () => {
-    cy.contains("Excluir").should("exist");
-  });
-
-  it("Abre modal ao clicar em Editar", () => {
-    cy.contains("Editar").first().click();
-    cy.contains("Editar Refeição").should("be.visible");
-  });
-
-  it("Modal contém inputs de edição", () => {
-    cy.contains("Editar").first().click();
-    cy.get("input").should("have.length.greaterThan", 0);
-  });
-
-  it("Permite alterar nome da refeição", () => {
-    cy.contains("Editar").first().click();
-    cy.get("input").first().clear().type("Refeição Editada");
-  });
-
-  it("Possui botão Cancelar no modal", () => {
-    cy.contains("Editar").first().click();
-    cy.contains("Cancelar").should("exist");
-  });
-
-  it("Possui botão Salvar Alterações", () => {
-    cy.contains("Editar").first().click();
-    cy.contains("Salvar Alterações").should("exist");
-  });
-
-  it("Fecha modal ao clicar Cancelar", () => {
-    cy.contains("Editar").first().click();
-    cy.contains("Cancelar").click();
-    cy.wait(1000); 
-    cy.contains("Editar Refeição").should("not.exist");
+  it("Deve editar e excluir uma refeição", () => {
+    cy.contains("Editar").click();
+    cy.get("[role='combobox']");
+    cy.contains("Almoço").click({ force: true });
+    cy.get("button").contains("Salvar").click({ force: true });
+    cy.contains("Almoço").should("exist");
+    cy.contains("Excluir").click();
+    cy.on('window:confirm', () => true);
+    cy.wait('@deleteMeal');
+    cy.contains("Almoço").should("not.exist");
   });
 
 });

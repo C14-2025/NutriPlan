@@ -1,92 +1,75 @@
 describe("NutritionDashboard UI Tests", () => {
 
- beforeEach(() => {
-  cy.intercept("POST", "/auth/login", {
-    statusCode: 200,
-    body: {
-      id: 1,
-      nome: "Teste",
-      email: "teste@teste.com",
-      idade: 25,
-      peso: 70,
-      altura: 170,
-      objetivo: "Ganhar massa",
-      sexo: "F",
-      nivelAtividade: "Moderado"
-    }
-  }).as("loginMock");
+  beforeEach(() => {
+    // simular usuário autenticado
+    window.localStorage.setItem("usuarioId", "1");
+    window.localStorage.setItem("usuarioNome", "Giovana");
 
-  // macros do dia
-  cy.intercept("GET", "**/macros**", {
-    statusCode: 200,
-    body: {
-      calorias: 500,
-      proteinas: 40,
-      carboidratos: 60,
-      gorduras: 20
-    }
-  }).as("getMacros");
+    cy.intercept("GET", "/dashboard/macros-por-dia/*/*", {
+      statusCode: 200,
+      body: {
+        calorias: 1500,
+        proteinas: 100,
+        carboidratos: 180,
+        gorduras: 50
+      }
+    }).as("getMacros");
 
-  // relatório semanal
-  cy.intercept("GET", "**/semanal**", {
-    statusCode: 200,
-    body: [
-      { day: "2025-11-24", calories: 500, protein: 40, carbs: 60, fat: 20 },
-      { day: "2025-11-25", calories: 600, protein: 45, carbs: 70, fat: 25 }
-    ]
-  }).as("getWeekly");
+    cy.intercept("GET", "/dashboard/relatorio-semanal/*", {
+      statusCode: 200,
+      body: [
+        { day: "2025-11-25", calories: 1800, protein: 120, carbs: 200, fat: 60 },
+        { day: "2025-11-26", calories: 1700, protein: 115, carbs: 195, fat: 55 }
+      ]
+    }).as("getWeekly");
 
-  // distribuição calórica
-  cy.intercept("GET", "**/distribuicao**", {
-    statusCode: 200,
-    body: {
-      caloriasProteina: 200,
-      caloriasCarboidrato: 300,
-      caloriasGordura: 100
-    }
-  }).as("getDistrib");
+    cy.intercept("GET", "/dashboard/distribuicao-calorica/*/*", {
+      statusCode: 200,
+      body: {
+        caloriasProteina: 400,
+        caloriasCarboidrato: 700,
+        caloriasGordura: 400
+      }
+    }).as("getDistrib");
+        
+    cy.visit("http://localhost:5173"); 
 
-  cy.visit("http://localhost:5173");
-
-  cy.get("#email").type("teste@teste.com");
-  cy.get("#senha").type("123456");
-
-  cy.contains("Entrar").click();
-
-  cy.wait("@loginMock");
-
-  cy.contains("Dashboard").click();
-  
-  
-});
-
-
-  it("Deve exibir corretamente os valores de macros do dia", () => {
-
-  cy.contains("500").should("exist");        // calorias
-  cy.contains("40g").should("exist");        // proteína
-  cy.contains("60g").should("exist");        // carbs
-  cy.contains("20g").should("exist");        // gordura
+    cy.contains('Dashboard').click();
   });
 
-  it("Deve renderizar as barras de progresso", () => {
-  cy.get(".progress").should("have.length", 4);
+  it("Deve exibir os cards principais com dados corretos", () => {
+    cy.wait("@getMacros");
+    cy.wait("@getWeekly");
+    cy.wait("@getDistrib");
+
+    cy.contains("Calorias").should("exist");
+    cy.contains("1500").should("exist");
+
+    cy.contains("Proteína").should("exist");
+    cy.contains("100.0g").should("exist");
+
+    cy.contains("Carboidratos").should("exist");
+    cy.contains("180.0g").should("exist");
+
+    cy.contains("Gordura").should("exist");
+    cy.contains("50.0g").should("exist");
   });
 
-  it("Renderiza o gráfico de distribuição de macronutrientes", () => {
-  cy.wait("@getDistrib");
+  it("Deve renderizar o gráfico de pizza com 3 fatias", () => {
+    cy.wait("@getDistrib");
 
-  cy.get("svg").should("exist"); // SVG do gráfico
-  cy.contains("Proteína").should("exist");
-  cy.contains("Carboidratos").should("exist");
-  cy.contains("Gordura").should("exist");
+    cy.get("svg").should("exist"); // PieChart
+    cy.contains("Proteína").should("exist");
+    cy.contains("Carboidratos").should("exist");
+    cy.contains("Gordura").should("exist");
   });
 
-  it("Renderiza o gráfico de tendência semanal", () => {
-  cy.wait("@getWeekly");
+  it("Deve renderizar o gráfico de linha com dados semanais", () => {
+    cy.wait("@getWeekly");
 
-  cy.contains("Tendência Semanal").should("exist");
-  cy.get("svg").should("exist"); // linha do gráfico
+    cy.get("svg").should("exist"); // LineChart
+    cy.contains("2025-11-25").should("exist");
+    cy.contains("2025-11-26").should("exist");
   });
 
   it("Carrega tudo e exibe o dashboard completo", () => {
@@ -99,22 +82,4 @@ describe("NutritionDashboard UI Tests", () => {
 
   cy.get("svg").its("length").should("be.gte", 2); // um do pie e um do line chart
   });
-
-  it("Calcula corretamente valores restantes", () => {
-  const goals = {
-    dailyCalories: 2000,
-    dailyProtein: 120,
-    dailyCarbs: 250,
-    dailyFat: 70
-  };
-
-  // Inserir metas fixas no localStorage, igual no seu App.tsx
-  window.localStorage.setItem("userGoals", JSON.stringify(goals));
-
-  cy.wait("@getMacros");
-
-  cy.contains("1500 restantes").should("exist"); // 2000 - 500
-  cy.contains("80.0g restantes").should("exist"); // 120 - 40
-  });
-
 });

@@ -79,25 +79,28 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 ### Configuração do Banco de Dados
 
 1. Crie um banco MySQL:
-   ```sql
-   CREATE DATABASE nutriplan;
-   ```
+```bash
+drop database if exists nutriplan;
+create database nutriplan;
+use nutriplan;
+show tables;
+```
 
 2. Configure as credenciais em `src/main/resources/application.properties`
 
 ### Backend (Spring Boot)
 
 1. Clone o repositório:
-   ```bash
+```bash
    git clone https://github.com/C14-2025/NutriPlan.git
    cd NutriPlan
-   ```
+```
 
 2. Compile e execute o backend:
-   ```bash
+ ```bash
    mvn clean install
    mvn spring-boot:run
-   ```
+ ```
 
 3. O backend estará rodando em: `http://localhost:8080`
 
@@ -127,9 +130,17 @@ Este projeto foi desenvolvido como parte do curso **C14-2025** e visa promover h
 O projeto utiliza **Jenkins** com pipeline automatizado que:
 
 * ✅ Executa testes automatizados
-* ✅ Verifica formatação de código com **Spotless**
 * ✅ Compila e empacota a aplicação
 * ✅ Falha o build se o código não estiver formatado corretamente
+* Para rodar jenkins, no cmd:
+  
+```bash
+cd "C:\Program Files\Jenkins"
+```
+
+```bash
+ java -jar jenkins.war --httpPort=8081
+```
 
 ### Formatação de Código
 
@@ -184,8 +195,7 @@ O projeto inclui testes automatizados com **Cypress** para:
 
 Para executar os testes:
 ```bash
-cd frontend
-npm run cypress:open
+npx cypress run
 ```
 
 ---
