@@ -90,7 +90,7 @@ pipeline {
             post {
                 always {
                     echo 'Arquivando relatórios do Cypress...'
-                    archiveArtifacts artifacts: 'cypress/screenshots/**/*', fingerprint: true
+                    archiveArtifacts artifacts: '**/cypress/screenshots/**/*', allowEmptyArchive: true, fingerprint: true
                 }
             }
         }
